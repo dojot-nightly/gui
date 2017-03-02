@@ -78,12 +78,12 @@ class DetailItem extends Component {
     MeasureStore.unlisten(this.onChange);
   }
 
-  getFormattedDate(timestamp) {
-    let date = new Date(timestamp);
-    let formattedDate = date.getUTCDate() + "/" + (date.getUTCMonth() + 1) + "/" + date.getUTCFullYear()
-                        + " " + date.getUTCHours() + ":" + date.getUTCMinutes() + ":" + date.getUTCSeconds();
-    return formattedDate;
-  }
+  // getFormattedDate(timestamp) {
+  //   let date = new Date(timestamp);
+  //   let formattedDate = date.getUTCDate() + "/" + (date.getUTCMonth() + 1) + "/" + date.getUTCFullYear()
+  //                       + " " + date.getUTCHours() + ":" + date.getUTCMinutes() + ":" + date.getUTCSeconds();
+  //   return formattedDate;
+  // }
 
   render() {
     return (
@@ -100,18 +100,18 @@ class DetailItem extends Component {
               <div className="col s12 data"><TagList tags={this.props.device.tags}/></div>
             </div>
             <div className="lst-title col s12">
-              <span>Measures</span>
+              <span>Temperature</span>
             </div>
             <div className="col s12">
               <div className="col s6">Timestamp</div>
               <div className="col s6">Values</div>
               { this.state.measures.map((measure) =>(
-                <div className="col s12" key={measure}>
+                <div className="col s12" key={measure.timestamp}>
                   <div className="col s6 data">
-                    {measure[0]}
+                    {measure.timestamp}
                   </div>
                   <div className="col s6 data">
-                    {measure[2]}
+                    {measure.value}
                   </div>
                 </div>
               ))}
