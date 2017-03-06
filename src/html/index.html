@@ -12,6 +12,8 @@
   <link href="components/materialize/dist/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+
 </head>
 <body>
   <div id="app"></div>
@@ -26,5 +28,22 @@
   <script src="components/jquery/dist/jquery.min.js"></script>
   <script src="components/materialize/dist/js/materialize.js"></script>
   <script src="js/devices.js"></script>
+
+  <script>
+    var socket = io.connect('http://localhost:1028');
+    function handle_alert(data) {
+      console.log('got alarm', data);
+      Materialize.toast('High temperature alarm for device: demo_temperature', 4000);
+    }
+
+    function handle_clear(data) {
+      console.log('got clear', data);
+      Materialize.toast('Alarm cleared - demo_temperature', 4000);
+    }
+
+    socket.on('alarm', handle_alert);
+    socket.on('clear', handle_clear);
+
+  </script>
   </body>
 </html>

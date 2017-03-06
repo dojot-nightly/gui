@@ -12,6 +12,8 @@ import MeasureActions from '../../actions/MeasureActions';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { Link } from 'react-router'
 
+var LineChart = require("react-chartjs").Line;
+
 function TagList (props) {
   const tags = props.tags;
   return (
@@ -59,13 +61,17 @@ class DetailItem extends Component {
     const status = props.device.status ? 'online' : 'offline';
 
     this.state =  {
-      measures: MeasureStore.getState().measures
+      measures: MeasureStore.getState().measures,
+      displayTable: false
     }
 
     this.onChange = this.onChange.bind(this);
+    this.handleViewChange = this.handleViewChange.bind(this);
   }
 
   onChange(state) {
+    const displayStatus = this.state.displayTable;
+    state.displayTable = displayStatus;
     this.setState(state);
   }
 
@@ -78,14 +84,30 @@ class DetailItem extends Component {
     MeasureStore.unlisten(this.onChange);
   }
 
-  // getFormattedDate(timestamp) {
-  //   let date = new Date(timestamp);
-  //   let formattedDate = date.getUTCDate() + "/" + (date.getUTCMonth() + 1) + "/" + date.getUTCFullYear()
-  //                       + " " + date.getUTCHours() + ":" + date.getUTCMinutes() + ":" + date.getUTCSeconds();
-  //   return formattedDate;
-  // }
+  handleViewChange(event) {
+    const measures = this.state.measures;
+    const displayTable = ! this.state.displayTable;
+    this.setState({measures: measures, displayTable: displayTable})
+  }
 
   render() {
+    let chartData = {
+      labels: [],
+      datasets: [{
+        label: "Readings",
+        data: []
+      }]
+    };
+
+    let chartOptions = {
+      responsive: true
+    }
+
+    for (let i = 0; i < this.state.measures.length; i++) {
+      chartData.datasets[0].data.push(this.state.measures[i].value);
+      chartData.labels.push("");
+    }
+
     return (
       <span>
         <div className="lst-detail" >
@@ -103,18 +125,38 @@ class DetailItem extends Component {
               <span>Temperature</span>
             </div>
             <div className="col s12">
-              <div className="col s6">Timestamp</div>
-              <div className="col s6">Values</div>
-              { this.state.measures.map((measure) =>(
-                <div className="col s12" key={measure.timestamp}>
-                  <div className="col s6 data">
-                    {measure.timestamp}
-                  </div>
-                  <div className="col s6 data">
-                    {measure.value}
-                  </div>
+              <div className="row">
+                <div className="switch top-header right-align">
+                  <label>
+                    <span className="fa fa-area-chart"></span>
+                    <input type="checkbox" onChange={this.handleViewChange} checked={this.state.displayTable}/>
+                    <span className="lever"></span>
+                    <span className="fa fa-table"></span>
+                  </label>
                 </div>
-              ))}
+              </div>
+              <div className="row">
+                { this.state.displayTable ? (
+                  <div className="col s12">
+                    <div className="col s6">Timestamp</div>
+                    <div className="col s6">Values</div>
+                    { this.state.measures.map((measure) =>(
+                      <div className="col s12" key={measure.timestamp}>
+                        <div className="col s6 data">
+                          {measure.timestamp}
+                        </div>
+                        <div className="col s6 data">
+                          {measure.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="col s12">
+                    <LineChart data={chartData} options={chartOptions}/>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="col s2">

@@ -8,6 +8,10 @@ class MeasureActions {
     return list;
   }
 
+  addMeasure(measure) {
+    return { timestamp: measure.TimeInstant, value: measure.temperature };
+  }
+
   fetchMeasures(id) {
     return (dispatch) => {
       dispatch();

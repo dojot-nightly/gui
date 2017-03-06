@@ -3,6 +3,12 @@ var MeasureActions = require('../actions/MeasureActions');
 
 import util from '../comms/util';
 
+
+var socket = io.connect('http://localhost:1028');
+socket.on('temp', function(data) {
+  MeasureActions.addMeasure(data);
+});
+
 class MeasureStore {
   constructor() {
     this.measures = [];
@@ -12,12 +18,19 @@ class MeasureStore {
       handleUpdateMeasures: MeasureActions.UPDATE_MEASURES,
       handleFetchMeasures: MeasureActions.FETCH_MEASURES,
       handleFailure: MeasureActions.MEASURES_FAILED,
+      handleAdd: MeasureActions.ADD_MEASURE
     });
   }
 
   handleUpdateMeasures(measures) {
     this.measures = measures;
     this.error = null;
+  }
+
+  handleAdd(measure) {
+    console.log("about to push", measure);
+    this.measures.push(measure);
+    this.measures.splice(0, 1);
   }
 
   handleFetchMeasures(id) {
