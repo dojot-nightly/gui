@@ -286,7 +286,7 @@ class ListItem extends Component {
                   <div className="row">
                     <div className="col s6">
                       <div className="input-field">
-                        <label htmlFor="fld_Attributes" >Attributes</label>
+                        <label htmlFor="fld_Attributes" >Attribute</label>
                         <input id="fld_Attributes"
                                type="text"
                                name="attribute"
