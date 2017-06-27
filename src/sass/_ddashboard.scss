@@ -123,7 +123,7 @@
 
 .no-items-box
 {
-  
+
   font-size: 30px;
 }
 
@@ -139,17 +139,18 @@
     height: 100%;
     float: left;
     width:  calc(100% - (335px));
-    padding-right: 45px;
-    padding-top: 45px;
-    padding-bottom: 45px;
+    // padding-right: 45px;
+    // padding-top: 45px;
+    // padding-bottom: 45px;
+    padding: 45px;
 
     .box {
         font-family: 'Cuprum', sans-serif;
         color: $white;
         box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-        width:46%;
-        margin-left:4%;
+        // width:46%; // TODO: perhaps change this in favor of col $6
         padding: 0px;
+        // padding-left:4%;
         height: 770px;
         display: inline-block;
 

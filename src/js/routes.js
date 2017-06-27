@@ -29,36 +29,31 @@ export default (
           <Route path="id/:device/detail" name="Device detail" component={ViewDevice} />
           <Route path="id/:device/edit" name="Device edit" component={NewDevice} />
         </Route>
-        <Route path="template" name="Templates">
+        {/* <Route path="template" name="Templates">
           <IndexRoute component={TemplateList} />
           <Route path="list" name="Template list" component={TemplateList} />
           <Route path="stats" name="Template Dashboard" component={Todo} />
           <Route path="new" name="" component={NewTemplate} />
           <Route path="id/:templateId" name="Template detail" component={TemplateList} />
           <Route path="id/:template/edit" name="Template detail" component={NewTemplate} />
-        </Route>
+        </Route> */}
       </Route>
-
-      <Route path="config" name="Settings" component={Todo} />
-
+      {/* <Route path="config" name="Settings" component={Todo} /> */}
       <Route path="flows" name="Information Flows">
         <IndexRoute component={Flows} />
         <Route path="id/:flowid" name="Flow detail" component={EditFlow} />
         <Route path="new" name="New flow" component={EditFlow} />
       </Route>
-
-      <Route path="alarm" name="Alarm" component={Todo} />
-      <Route path="auth" name="Authentication">
+      {/* <Route path="alarm" name="Alarm" component={Todo} /> */}
+      {/* <Route path="auth" name="Authentication">
         <IndexRoute component={Users} />
         <Route path="user" name="User detail" component={Users} />
         <Route path="permissions" name="Permissioning detail" component={Todo} />
-      </Route>
-
-      <Route path="deploy" name="Deployment" component={Todo} >
+      </Route> */}
+      {/* <Route path="deploy" name="Deployment" component={Todo} >
         <Route path="plugins" name="Template detail" component={Todo} />
         <Route path="applications" name="Template detail" component={Todo} />
-      </Route>
-
+      </Route> */}
       <Route path="todo" name="To be implemented" component={Todo} />
     </Route>
   </Router>

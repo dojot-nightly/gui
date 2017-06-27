@@ -139,7 +139,7 @@ class ElementList extends Component {
       tam = this.props.list.length;
 
     return (
-        <div className="col box">
+        <div className="col box full-width">
             <div className={"box-title bg-"+info.color}>
               <img className="icon" src={info.img_url}/>
               <label className='number'>{tam}</label>
@@ -155,9 +155,6 @@ class ElementList extends Component {
   }
   }
 
-
-
-
 class MainPainel extends Component {
     constructor(props) {
       super(props);
@@ -165,9 +162,9 @@ class MainPainel extends Component {
 
     render() {
       return (
-        <div className="right-painel-info">
+        <div className="right-painel-info full-width">
           <ElementList type='devices' list={this.props.devices} />
-          <ElementList type='templates' list={this.props.templates} />
+          {/* <ElementList type='templates' list={this.props.templates} /> */}
         </div>
       )
   }
