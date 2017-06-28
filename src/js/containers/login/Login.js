@@ -97,11 +97,11 @@ class Content extends Component {
                            <i className="material-icons prefix">lock_open</i>
                   </div>
               </div>
-              <div className="row">
+              {/* <div className="row">
                 <div className="col s12 m5 offset-m3">
                   <div><i> Forgot your password?</i></div>
                 </div>
-              </div>
+              </div> */}
               <div className="row">
                 <div className="col s12 m1 offset-m7">
                     {/* { this.props.loading ? (
