@@ -521,7 +521,7 @@ class DetailItem extends Component {
           <div className="col action-area">
             <div className="relative full-width full-height">
               <div className="actions">
-                <div><i className="clickable fa fa-code" title="Get code"/></div>
+                {/* <div><i className="clickable fa fa-code" title="Get code"/></div> */}
                 <Link to={"/device/id/" + this.props.device.id + "/detail"} title="View all details">
                   <div><i className="clickable fa fa-expand" /></div>
                 </Link>

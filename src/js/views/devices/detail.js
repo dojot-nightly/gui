@@ -70,9 +70,9 @@ class DeviceUserActions extends Component {
   render() {
     return (
       <div>
-        <a className="waves-effect waves-light btn-flat btn-ciano" tabIndex="-1" title="Get code">
+        {/* <a className="waves-effect waves-light btn-flat btn-ciano" tabIndex="-1" title="Get code">
           <i className="clickable fa fa-code"/>
-        </a>
+        </a> */}
         <Link to={"/device/list?detail=" + this.props.deviceid} className="waves-effect waves-light btn-flat btn-ciano" tabIndex="-1" title="Hide all details">
           <i className="clickable fa fa-compress" />
         </Link>
