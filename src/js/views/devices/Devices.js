@@ -568,10 +568,10 @@ class DetailItem extends Component {
                       <span className="label">Protocol</span>
                       <span className="value">{this.props.device.protocol ? this.props.device.protocol : "MQTT"}</span>
                     </div>
-                    <div className="metric col s8" >
+                    {/* <div className="metric col s8" >
                       <span className="label">Tags</span>
                       <TagList tags={this.props.device.tags} />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

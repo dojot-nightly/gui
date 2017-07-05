@@ -454,10 +454,10 @@ class DeviceDetail extends Component {
                     <span className="label">Protocol</span>
                     <span className="value">{device.protocol ? device.protocol : "MQTT"}</span>
                   </div>
-                  <div className="metric fullPage col s8" >
+                  {/* <div className="metric fullPage col s8" >
                     <span className="label">Tags</span>
                     <TagList tags={device.tags} />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

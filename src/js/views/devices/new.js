@@ -437,7 +437,7 @@ class DeviceForm extends Component {
                          key="label" onChange={this.handleChange} />
                 </div>
 
-                <div className="col s12">
+                {/* <div className="col s12"> */}
                   <div className="input-field col s4" >
                     <MaterialSelect id="fld_prot" name="protocol"
                                     value={this.props.device.protocol}
@@ -448,10 +448,10 @@ class DeviceForm extends Component {
                     <label htmlFor="fld_prot">Device type</label>
                   </div>
 
-                  <div className="col s8" >
+                  {/* <div className="col s8" >
                     <TagForm tags={this.props.device.tags}/>
-                  </div>
-                </div>
+                  </div> */}
+                {/* </div> */}
               </div>
             </div>
           </div>
