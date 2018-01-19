@@ -24,17 +24,22 @@ class DeviceStore {
     });
   }
 
+  /*
+  *
+  * It's necessary discuss about status of a device
+  *
   parseStatus(device) {
-    if (device.protocol.toLowerCase() == 'virtual') {
-      return device.protocol.toLowerCase();
-    } else {
+    // if (device.protocol && device.protocol.toLowerCase() == 'virtual') {
+    //   return device.protocol.toLowerCase();
+    // } else {
       if (device.status) {
         return device.status;
       }
-    }
+    // }
 
     return "disabled"
   }
+  */
 
   handleUpdateSingle(device) {
     let newDevice = JSON.parse(JSON.stringify(device))
@@ -88,7 +93,7 @@ class DeviceStore {
   handleUpdateDeviceList(devices) {
     this.devices = {};
     for (let idx = 0; idx < devices.length; idx++) {
-      devices[idx]._status = this.parseStatus(devices[idx]);
+      //devices[idx]._status = this.parseStatus(devices[idx]);
       if (devices[idx].attrs == undefined) {
         devices[idx].attrs = [];
       }
