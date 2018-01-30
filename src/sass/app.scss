@@ -22,7 +22,7 @@ $default: rgba(0, 0, 0, 0.87);
 $almost-black: #666666;
 $gray:#f3f3f3;
 $dark-gray:#212121;
-
+$shark: #1c2733;
 
 // this the new color scheme
 // blue
@@ -37,7 +37,6 @@ $dark-ciano:#12BDBA;
 
 $bluewood: #2c3e50;
 $spruce: #3d505b;
-$shark: #1c2733;
 $white: #fff;
 $kashmir: #51779f;
 $kashmir-border: #436788;
@@ -234,7 +233,7 @@ body {
 .flex-wrapper {
   display: flex;
   flex-flow: column;
-  height: 100%;
+  height: calc(100% - 63px);
 
   .fill {
     flex: 1;
@@ -245,6 +244,21 @@ body {
   overflow-y: visible;
 }
 
+.pt10px, .pt10
+{
+  padding-top: 10px !important;
+}
+
+
+.pt20px, .pt20
+{
+  padding-top: 20px !important;
+}
+
+.pb20px, .pb20
+{
+  padding-bottom: 20px !important;
+}
 
 .pull-right
 {
@@ -258,6 +272,23 @@ body {
 
 .mb0px,.mb0{
   margin-bottom: 0px !important;
+}
+
+.mt3px, .mt3
+{
+    margin-top: 3px;
+}
+
+#toast-container {
+  margin: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: 0%;
+  left:50%;
+}
+
+.toast{
+    background-color: #ee6e73 !important;
 }
 
 @import 'inputs';

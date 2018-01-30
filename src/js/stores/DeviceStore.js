@@ -21,30 +21,37 @@ class DeviceStore {
       handleRemoveSingle: DeviceActions.REMOVE_SINGLE,
 
       handleFailure: DeviceActions.DEVICES_FAILED,
+
+      fetchSingle: DeviceActions.FETCH_SINGLE,
     });
   }
 
+  /*
+  *
+  * It's necessary discuss about status of a device
+  *
   parseStatus(device) {
-    if (device.protocol.toLowerCase() == 'virtual') {
-      return device.protocol.toLowerCase();
-    } else {
+    // if (device.protocol && device.protocol.toLowerCase() === 'virtual') {
+    //   return device.protocol.toLowerCase();
+    // } else {
       if (device.status) {
         return device.status;
       }
-    }
+    // }
 
     return "disabled"
   }
+  */
 
   handleUpdateSingle(device) {
-    let newDevice = JSON.parse(JSON.stringify(device))
-    if (newDevice.attrs == undefined) {
+    let newDevice = JSON.parse(JSON.stringify(device));
+    if (newDevice.attrs === undefined) {
       newDevice.attrs = [];
     }
-    if (newDevice.static_attrs == undefined) {
+    if (newDevice.static_attrs === undefined) {
       newDevice.static_attrs = [];
     }
-    newDevice._status = this.parseStatus(device);
+    // newDevice._status = this.parseStatus(device);
     newDevice.loading = false;
 
     this.devices[device.id] = newDevice;
@@ -73,7 +80,7 @@ class DeviceStore {
   }
 
   handleInsertDevice(device) {
-    device._status="disabled"
+    device._status="disabled";
     this.devices[device.id] = JSON.parse(JSON.stringify(device));
     this.error = null;
     this.loading = false;
@@ -88,14 +95,14 @@ class DeviceStore {
   handleUpdateDeviceList(devices) {
     this.devices = {};
     for (let idx = 0; idx < devices.length; idx++) {
-      devices[idx]._status = this.parseStatus(devices[idx]);
-      if (devices[idx].attrs == undefined) {
+      //devices[idx]._status = this.parseStatus(devices[idx]);
+      if (devices[idx].attrs === undefined) {
         devices[idx].attrs = [];
       }
-      if (devices[idx].static_attrs == undefined) {
+      if (devices[idx].static_attrs === undefined) {
         devices[idx].static_attrs = [];
       }
-      if (devices[idx].tags == undefined) {
+      if (devices[idx].tags === undefined) {
         devices[idx].tags = [];
       }
       this.devices[devices[idx].id] = JSON.parse(JSON.stringify(devices[idx]))

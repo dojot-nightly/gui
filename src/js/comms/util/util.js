@@ -133,7 +133,7 @@ class Util {
   }
 
   iso_to_date(timestamp) {
-    return moment(timestamp).format('MMM, D, YYYY HH:mm:ss');
+    return moment(timestamp).format('D/MM/YYYY HH:mm:ss');
   }
 
 
@@ -143,57 +143,74 @@ class Util {
       return false;
     }
 
-    if (name.match(/^\w+$/) == null) {
+    if (name.match(/^[a-zA-Z0-9_\- ]*$/) == null) {
       // ErrorActions.setField('name', "Please use only letters (a-z), numbers (0-9) and underscores (_).");
       return false;
     } else {
-      // ErrorActions.setField('name', "");
       return true;
     }
   }
 
-  isTypeValid(value, type){
+  isTypeValid(value, type, dynamic){
+    let ret = {result: true, error: ""};
+    if (dynamic === 'dynamic' && value.length === 0) return ret;
     const validator = {
       'string': function (value) {
-        return value.trim().length > 0;
+        ret.result = value.trim().length > 0;
+        ret.error = 'This text is not valid';
+        return ret;
       },
       'geo:point': function (value) {
-        const re = /^([+-]?\d+(\.\d+)?)([,]\s*)([+-]?\d+(\.\d+)?)$/
-        const result = re.test(value);
-        if (result == false) {
-          ErrorActions.setField('value', 'This is not a valid coordinate')
+        const re = /^([+-]?\d+(\.\d+)?)([,]\s*)([+-]?\d+(\.\d+)?)$/;
+        ret.result = re.test(value);
+        if (ret.result === false) {
+            ret.error = 'This is not a valid coordinate';
         }
-        return result;
+        return ret;
       },
       'integer': function (value) {
-        const re = /^[+-]?\d+$/
-        const result = re.test(value);
-        if (result == false) {
-          ErrorActions.setField('value', 'This is not an integer')
+        const re = /^[+-]?\d+$/;
+        ret.result = re.test(value);
+        if (ret.result === false) {
+            ret.error = 'This is not an integer';
         }
-        return result;
+        return ret;
       },
       'float': function (value) {
-        const re = /^[+-]?\d+(\.\d+)?$/
-        const result = re.test(value);
-        if (result == false) {
-          ErrorActions.setField('value', 'This is not a float')
+        const re = /^[+-]?\d+(\.\d+)?$/;
+        ret.result = re.test(value);
+        if (ret.result === false) {
+            ret.error = 'This is not a float';
         }
-        return result;
+        return ret;
       },
       'boolean': function (value) {
-        const re = /^0|1|true|false$/
-        const result = re.test(value);
-        if (result == false) {
-          ErrorActions.setField('value', 'This is not a boolean')
+        const re = /^0|1|true|false$/;
+        ret.result = re.test(value);
+        if (ret.result === false) {
+            ret.error = 'This is not a boolean';
         }
-        return result;
+        return ret;
       },
+      'protocol': function (value) {
+          ret.result = value.trim().length > 0;
+          ret.error = 'This protocol is not valid';
+          return ret;
+      },
+      'topic': function (value) {
+          ret.result = value.trim().length > 0;
+          ret.error = 'This topic is not valid';
+          return ret;
+      },
+      'translator': function (value) {
+          ret.result = value.trim().length > 0;
+          ret.error = 'This translator is not valid';
+          return ret;
+      }
     };
 
-
     if (validator.hasOwnProperty(type)) {
-      const result = validator[type](value)
+      const result = validator[type](value);
       // if (result) { ErrorActions.setField('value', ''); }
       return result;
     }
@@ -203,7 +220,8 @@ class Util {
     //   if (result) { ErrorActions.setField('value', ''); }
     //   return result;
     // }
-    return true;
+
+    return ret;
   }
 
 
@@ -217,7 +235,7 @@ class TypeDisplay {
       'geo:point': 'Geo',
       'float':'Float',
       'integer':'Integer',
-      'string':'Text',
+      'string':'String',
       'boolean':'Boolean',
     }
   }
@@ -239,5 +257,5 @@ class TypeDisplay {
   }
 }
 
-var util = new Util();
+let util = new Util();
 export default util;
