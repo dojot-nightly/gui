@@ -1,5 +1,6 @@
 import LoginActions from '../../actions/LoginActions';
 import moment from 'moment'
+import 'babel-polyfill'
 
 function FetchError(data, message) {
   this.name = "FetchError";
@@ -85,30 +86,36 @@ class Util {
         authConfig = { headers: headers };
       }
     }
-
     return new Promise(function(resolve, reject) {
       fetch(url, authConfig)
         .then(local._status)
-        .then(local._json)
-        .then(function(data) { resolve(data); })
+        // .then(local._json)
+        .then(function(data) { resolve(data[1]); })
         .catch(function(error) {
-          reject(error);
+          reject(local.checkContent(error));
         })
     })
   }
 
-  _status(response) {
-    if (response.status >= 200 && response.status < 300) {
-      return Promise.resolve(response);
-    } else {
-      if ((response.status == 401) || (response.status == 403)) {
-        LoginActions.logout();
-      }
-      return Promise.reject(new FetchError(response, response.statusText));
+    async _status(response) {
+    let body = await response.json();
+    response.message = body.message;
+        if (response.status >= 200 && response.status < 300) {
+            return [Promise.resolve(response), body];
+        } else {
+            if ((response.status === 401) || (response.status === 403)) {
+                LoginActions.logout();
+            }
+            // return Promise.reject(new FetchError(response, response.statusText ));
+            return Promise.reject(response);
+        }
     }
-  }
 
-  _json(response) {
+    checkContent(data) {
+        return(new FetchError(data, data.message ));
+    }
+
+     _json(response) {
     return response.json();
   }
 
@@ -138,16 +145,19 @@ class Util {
 
 
   isNameValid(name) {
-    if (name.length == 0) {
-      // ErrorActions.setField('name', "You can't leave this empty");
-      return false;
+    let ret = {result: true, error: ""};
+    if (name.length === 0) {
+        ret.result = false;
+        ret.error = "You can't leave the name empty.";
+      return ret;
     }
 
     if (name.match(/^[a-zA-Z0-9_\- ]*$/) == null) {
-      // ErrorActions.setField('name', "Please use only letters (a-z), numbers (0-9) and underscores (_).");
-      return false;
+      ret.result = false;
+      ret.error = "Please use only letters (a-z), numbers (0-9) and underscores (_).";
+      return ret;
     } else {
-      return true;
+      return ret;
     }
   }
 
