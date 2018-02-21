@@ -1,3 +1,30 @@
+.searchBtn{
+
+    margin-right: 19px;
+    color: #2c3e50;
+    border-radius: 50%;
+    display: inline-flex;
+    cursor: pointer;
+    padding: 9px;
+    transition: ease 500ms;
+    cursor: pointer;
+
+    cursor:pointer;
+    &:hover{
+       color: #ffffff;
+        background: #999;
+        box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+  }
+
+.btn-red
+{
+  &:hover{
+    background-color: #eb5757;
+  }
+}
+
 .new-btn-circle
 {
       position: relative;
@@ -41,7 +68,7 @@
     // background: linear-gradient(269.31deg, #F2994A 9.21%, #FF7800 84.23%);
     background: $white !important;
     color: $almost-black;
-    border: 1px solid yellow;
+    border: 1px solid $gray;
   }
 
   i {
