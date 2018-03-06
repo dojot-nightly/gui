@@ -14,6 +14,7 @@ class MeasureStore {
       handleAppendMeasures: MeasureActions.APPEND_MEASURES,
       handleUpdateMeasures: MeasureActions.UPDATE_MEASURES,
       handleFailure: MeasureActions.MEASURES_FAILED,
+      handleUpdatePosition: MeasureActions.UPDATE_POSITION,
 
       handleTrackingFetch: TrackingActions.FETCH,
       handleTrackingSet: TrackingActions.SET,
@@ -32,6 +33,19 @@ class MeasureStore {
     if (this.tracking.hasOwnProperty(device_id)){
       delete this.tracking[device_id];
     }
+  }
+
+  handleUpdatePosition(data){
+    function parserPosition(position){
+      let parsedPosition = position.split(", ");
+      if(parsedPosition.length > 1){
+        return [parseFloat(parsedPosition[0]), parseFloat(parsedPosition[1])];
+      }
+    }
+    if(data !== undefined){
+      this.data.position = parserPosition(data);
+    }
+
   }
 
   handleUpdateMeasures(measureData) {
@@ -61,18 +75,9 @@ class MeasureStore {
 
 
   handleAppendMeasures(measureData) {
-    if (this.data.device == measureData.device_id) {
-      for (let k in measureData) {
-        if (measureData.hasOwnProperty(k)) {
-          if (this.data.data.hasOwnProperty(k) == false) {
-            this.data.data[k] = [NaN]; // dummy entry - will always be removed
-          }
-          this.data.data[k].unshift(measureData[k]);
-          this.data.data[k].splice(this.data.data[k].length - 1, 1)
-        }
-      }
-    } else {
-      this.data = measureData;
+    if(this.data.id === measureData.metadata.deviceid){
+      let label = Object.keys(measureData.attrs);
+      this.data[label[0]] = this.data[label[0]].concat(measureData.attrs[label[0]]);
     }
   }
 
@@ -80,7 +85,7 @@ class MeasureStore {
      if (! ('device' in measureData)) { console.error("Missing device id"); }
      if (! ('attr' in measureData)) { console.error("Missing attr id"); }
 
-     if (! (measureData.device in this.devices)) {
+     if (! (measureData.device in this.devices)) {measureData;
        this.devices[measureData.device] = {}
      }
 
