@@ -186,8 +186,8 @@ class SideBar extends Component {
                                         value={this.state.user.profile}
                                         onChange={this.handleChange}>
                             <option value="" disabled>Choose your option</option>
-                            <option value="admin">Administrator</option>
-                            <option value="user">User</option>
+                            <option value="admin" id={'adm-option'}>Administrator</option>
+                            <option value="user" id={'user-option'}>User</option>
                         </MaterialSelect>
                     </div>
                     <div id={'edit-footer'} className={'action-footer' + (this.props.edit ? '' : ' hide')}>
@@ -448,6 +448,7 @@ function UserFilter(props) {
             // to selected user fields.
             return (
                 e.name.toLowerCase().includes(filter) ||
+                e.name.includes(filter) ||
                 e.username.toLowerCase().includes(filter) ||
                 e.email.toLowerCase().includes(filter) ||
                 e.profile.toLowerCase().includes(filter)
