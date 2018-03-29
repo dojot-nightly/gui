@@ -56,13 +56,14 @@ class Util {
   }
   
   POST_MULTIPART(url, payload) {
-
+    console.log("POST_MULTIPART", payload);
     let data = new FormData();
-    data.append('file', payload);
+    data.append('sha1', payload.sha1);
+    data.append('image', payload.binary);
 
     return this._runFetch(url, {
       method: 'post',
-      headers: new Headers({ "content-type": "multipart/form-data" }),
+      // headers: new Headers({ "Content-Type": "multipart/form-data" }),
       body: data
       // body: new Blob(payload, { type: 'multipart/form-data' })
     });
@@ -108,6 +109,7 @@ class Util {
       }
     }
     return new Promise(function(resolve, reject) {
+      console.log("authConfig", authConfig);
       fetch(url, authConfig)
         .then(local._status)
         // .then(local._json)
