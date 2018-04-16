@@ -59,7 +59,7 @@ class ImageModal extends Component {
     // }
 
     render() {
-        console.log("Rendering Image Modal", this.props);
+        // console.log("Rendering Image Modal", this.props);
 
         let images = [];
         for (let img in this.props.images)
@@ -72,7 +72,7 @@ class ImageModal extends Component {
         )[0];
         if (default_version)
             default_version = default_version.static_value;
-        console.log("default fw_version: ", default_version);
+        // console.log("default fw_version: ", default_version);
 
         return (
 
@@ -273,7 +273,7 @@ class ConfigList extends Component {
     }
 
     render() {
-        console.log("this.props.attributes", this.props.attributes);
+        // console.log("this.props.attributes", this.props.attributes);
         if (this.props.attributes.type == "fw_version")
         return null;
 
@@ -607,13 +607,13 @@ class ListItem extends Component {
 
     refreshImages()
     {
-        console.log("this.state.template.label", this.state.template.label);
+        // console.log("this.state.template.label", this.state.template.label);
            ImageActions.fetchSingle.defer(this.state.template.label, () => {
         });
     }
 
     componentDidMount() {
-        
+
         if (this.state.template.isNewTemplate) {
             this.setState({ isEditable: true, isSuppressed: false});
         }
@@ -779,13 +779,18 @@ class ListItem extends Component {
         }
         this.state.template.attrs.push.apply(this.state.template.attrs, this.state.template.data_attrs);
         this.state.template.attrs.push.apply(this.state.template.attrs ,this.state.template.config_attrs);
-        TemplateActions.addTemplate(this.state.template);
-        TemplateActions.fetchTemplates.defer();
+        TemplateActions.addTemplate(this.state.template, (template) => {
+            Materialize.toast('Template created', 4000);
+            TemplateActions.removeSingle("new_template");
+            this.props.enableNewTemplate();
+        })
     }
 
     discardUnsavedTemplate(e) {
         e.preventDefault();
-        TemplateActions.fetchTemplates.defer();
+        TemplateActions.removeSingle("new_template");
+        // TemplateActions.fetchTemplates.defer();
+        this.props.enableNewTemplate();
     }
 
     handleModal(){
@@ -802,13 +807,13 @@ class ListItem extends Component {
     }
 
     toggleImageModal(){
-        console.log("toggle_image_modal");
+        // console.log("toggle_image_modal");
         this.setState({ show_image_modal: !this.state.show_image_modal });
     }
 
     updateDefaultVersion(img)
     {
-        console.log("update Star", img);
+        // console.log("update Star", img);
         // 1. remove previous default version
         let tmplt = this.state.template;
         tmplt.config_attrs = tmplt.config_attrs.filter(
@@ -1121,6 +1126,7 @@ class TemplateList extends Component {
                     editTemplate={this.editTemplate}
                     updateTemplate={this.updateTemplate}
                     deleteTemplate={this.deleteTemplate}
+                    enableNewTemplate={this.props.enableNewTemplate}
                     confirmTarget="confirmDiag"
                   />
                 ))}
@@ -1140,8 +1146,10 @@ class Templates extends Component {
 
         this.addTemplate = this.addTemplate.bind(this);
         this.toggleSearchBar = this.toggleSearchBar.bind(this);
-
-        this.state = { showFilter: false };
+        this.enableNewTemplate = this.enableNewTemplate.bind(this);
+        this.state = { showFilter: false,
+            has_new_template: false
+        };
     }
 
     toggleSearchBar() {
@@ -1150,8 +1158,11 @@ class Templates extends Component {
     }
 
     addTemplate() {
+        if (this.state.has_new_template)
+            return;
         let template =
             {
+                "id":"new_template",
                 "label": "",
                 "data_attrs": [],
                 "config_attrs": [],
@@ -1159,6 +1170,12 @@ class Templates extends Component {
                 "isNewTemplate": true
             };
         TemplateActions.insertTemplate(template);
+       this.setState({'has_new_template': true});
+    }
+
+    enableNewTemplate()
+    {
+        this.setState({ 'has_new_template': false });
     }
 
     componentDidMount() {
@@ -1178,14 +1195,14 @@ class Templates extends Component {
                         <div className="searchBtn" title="Show search bar" onClick={this.toggleSearchBar.bind(this)}>
                           <i className="fa fa-search" />
                         </div>
-                        <div onClick={this.addTemplate} className="new-btn-flat red waves-effect waves-light"
+                        <div onClick={this.addTemplate} className="new-btn-flat red "
                               title="Create a new template">
                             New Template<i className="fa fa-plus"/>
                         </div>
                     </div>
                 </NewPageHeader>
                 <AltContainer store={TemplateStore}>
-                    <TemplateList showSearchBox={this.state.showFilter}/>
+                    <TemplateList enableNewTemplate={this.enableNewTemplate} showSearchBox={this.state.showFilter}/>
                 </AltContainer>
             </ReactCSSTransitionGroup>
         );
