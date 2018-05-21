@@ -137,7 +137,7 @@ function HistoryList(props) {
           <div className="full-height full-width history-list">
             {trimmedList.map((i,k) => {
               return (<div className={"history-row " + (k % 2 ? "alt-row" : "")} key={i.ts}>
-                <div className="value">{i.value}</div>
+                <div className="value">{i.value.toString()}</div>
                 <div className="label">{util.iso_to_date(i.ts)}</div>
               </div>
             )})}
@@ -228,7 +228,7 @@ class PositionWrapper extends Component {
             </Script>
           </div>
           {this.state.mapquest ? (
-            <PositionRenderer devices={validDevices} allowContextMenu={false} center={validDevices[0].position} zoom={14}/>
+            <PositionRenderer devices={validDevices} allowContextMenu={false} center={validDevices[0].position} zoom={14} showPolyline={false}/>
           ): (
             <Loading />
           )}

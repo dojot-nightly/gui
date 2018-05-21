@@ -3,6 +3,57 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { DojotBtnCircle, DojotButton } from "../../components/DojotButton";
 import ReactPaginate from 'react-paginate';
 
+class GenericOperations {
+
+  constructor() {
+    console.log("GenericOperations loaded.");
+  }
+
+  setDefaultPaginationParams() {
+    console.log("setDefaultPaginationParams");
+    this.paginationParams = {
+      page_size: 6,
+      page_num: 1
+    };
+  }
+
+  hasFilter() {
+    if (JSON.stringify(this.filterParams) != "{}") {
+      //Look for a better code
+      return true;
+    }
+    return false;
+  }
+
+  getCurrentQuery() {
+    return this.filterParams;
+  }
+
+}
+
+class FilterLabel extends Component{
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    if (this.props.ops.hasFilter())
+    return(
+      <div className = 'col s2 p0 filter-information' >
+        {this.props.text}
+      </div>  
+      )
+      else
+      return (
+        <div className='col s2 p0' >
+        </div>  
+      )
+    }
+
+}
+
+
 class Pagination extends Component {
 
   constructor(props) {
@@ -16,17 +67,16 @@ class Pagination extends Component {
   }
 
   render() {
-    // console.info("Rendering Filter");
-    // console.info("Props and States ",this.props,this.state);
-    // console.log("this.props.showPainel", this.props.showPainel);
-    if (!this.props.pagination)
-      return <div className='col s7 p0'></div>;
+    console.log("Render Pagination Component ", this.props);
+
+    if (!this.props.pagination || !this.props.show_pagination || !this.props.pagination.total)
+      return <div className="col s5 p0" ></div>;
 
     let pageCount = this.props.pagination.total;
     let currentPage = this.props.pagination.page - 1; 
 
     return (
-      <div className='col s7 p0'>
+      <div className='col s5 p0'>
         <ReactPaginate previousLabel={"previous"}
           nextLabel={"next"}
           pageCount={pageCount}
@@ -50,18 +100,18 @@ class Filter extends Component {
     super(props);
     this.state = {
       hasData: false,
-      hasPainel: true,
       order: 'asc',
       nElements: 0,
       query: {}
     };
-    this.filterByLabel = this.filterByLabel.bind(this);
+    this.handleChange = this.handleChange.bind(this);
     this.updateQuery = this.updateQuery.bind(this);
     this.doSearch = this.doSearch.bind(this);
   }
 
   updateQuery(element) {
     // console.log("Update query...");
+    // console.log(element);
     let qy = this.state.query;
     qy[element.label] = element.value;
     if (element.value.trim() == "")
@@ -73,40 +123,45 @@ class Filter extends Component {
     this.props.ops.whenUpdateFilter(this.state.query);
   }
   
-  filterByLabel(e) {
-    e.preventDefault();
-    this.updateQuery({ 'label': 'label', 'value':e.target.value});
+  handleChange(event) {
+    event.preventDefault();
+    const f = event.target.name;
+    const v = event.target.value;
+    this.updateQuery({ 'label': f, 'value': v});
   }
 
   componentDidMount() {
-    this.setState({ hasPainel: this.props.showSearchBox });
+    if (this.props.ops.hasFilter())
+    {
+      let qry = this.props.ops.getCurrentQuery();
+      console.log("Getting current query: ", qry);
+      this.setState({ query: qry });
+    }
   }
   
   render() {
-    // console.info("Rendering Filter");
-    // console.info("Props and States ",this.props,this.state);
-    console.log("this.props.showPainel", this.props.showPainel);
+    console.log("Render Filter Component ", this.props);
  
     // if (this.props.showPainel) {
     //   return null;
     // }
     let Fields = this.props.fields;
 
-    return ( 
-      <div className={"row z-depth-2 templatesSubHeader " + (this.props.showPainel ? "show-dy" : "hide-dy")} id="inner-header">
+    return (
+    <div className={"row z-depth-2 templatesSubHeader " + (this.props.showPainel ? "show-dy" : "hide-dy")} id="inner-header">
         <div className="col s3 m3 main-title">
           Filtering {this.props.metaData.alias}(s)
           {/* Showing {this.state.nElements}  {this.metaData.alias}(s) */}
         </div>
         <div className="col s1 m1 header-info" />
         <div className="col s6 m6">
-          <Fields value={this.state.query.label} onChange={this.filterByLabel} />
+          <Fields fields={this.state.query} onChange={this.handleChange} />
         </div>
         <div className="col s1 m1 pt10">
           <DojotBtnCircle click={this.doSearch} icon={"fa fa-search"} />
         </div>
-      </div>
-      )
+    </div>
+    )
   }
 }
 
@@ -140,4 +195,4 @@ class SimpleFilter extends Component {
 }
 
 // export default Filter;
-export { SimpleFilter, Filter, Pagination };
+export { SimpleFilter, Filter, Pagination, FilterLabel, GenericOperations };

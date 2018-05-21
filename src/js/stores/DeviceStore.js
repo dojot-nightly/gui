@@ -5,6 +5,7 @@ var TrackingActions = require('../actions/TrackingActions');
 class DeviceStore {
   constructor() {
     this.devices = {};
+    this.deviceList = [];
     this.tracking = {};
     this.error = null;
     this.loading = false;
@@ -66,7 +67,7 @@ class DeviceStore {
   }
 
   handleUpdateStatus(device) {
-   if (device.metadata.status != undefined) {
+   if ((device.metadata.status != undefined) && (this.devices[device.metadata.deviceid])) {
     this.devices[device.metadata.deviceid].status = device.metadata.status;
    }
   }
@@ -105,7 +106,10 @@ class DeviceStore {
     this.loading = true;
   }
 
-  handleUpdateDeviceList(devices) {
+  handleUpdateDeviceList(res) {
+    console.log("handleUpdateDeviceList",res);
+    this.pagination = res.pagination;
+    let devices = res.devices;
     this.devices = {};
     for (let idx = 0; idx < devices.length; idx++) {
       //devices[idx]._status = this.parseStatus(devices[idx]);
@@ -124,6 +128,7 @@ class DeviceStore {
       }
 
       this.devices[devices[idx].id] = JSON.parse(JSON.stringify(devices[idx]))
+      this.deviceList[idx] = this.devices[devices[idx].id]
     }
 
     this.error = null;
@@ -137,7 +142,7 @@ class DeviceStore {
 
   fetchDevicesByTemplate() {
     this.devices = {};
-    this.loading = false;
+    this.loading = true;
   }
 
   fetchSingle(deviceid) {

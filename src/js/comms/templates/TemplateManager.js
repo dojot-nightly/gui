@@ -5,15 +5,16 @@ class TemplateManager {
     this.baseUrl = ""
   }
 
-  getLastTemplates(field)
-  {
+  getLastTemplates(field) {
     return util.GET(this.baseUrl + "/template?limit=10&sortDsc="+field);
   }
   
   getTemplates(params) {
-    let qs = Object.keys(params).map(key => key + '=' + params[key]).join('&')
     if (params) 
+    {
+      let qs = Object.keys(params).map(key => key + '=' + params[key]).join('&')
       return util.GET(this.baseUrl + '/template?'+qs);
+    }
     else
       return util.GET(this.baseUrl + '/template');
     // console.log("TemplateManager.getTemplates.filter: ",filter);

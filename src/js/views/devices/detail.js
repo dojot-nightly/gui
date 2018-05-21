@@ -21,7 +21,7 @@ import Script from 'react-load-script';
 
 class Tooltip extends Component{
   constructor(props) {
-      super(props); 
+      super(props);
   }
 
   render(){
@@ -157,14 +157,18 @@ class GenericList extends Component {
   }
 
   limitSizeField(attrs){
-    console.log("Attrs: ", attrs);
     attrs.map(attr => {
       if(attr.type == "meta"){
+        // values of configurations
         if(attr.static_value.length > 20){
           this.setState({truncate: true});
         }
       } else {
         if(attr.label.length > 20 || attr.value_type > 20){
+          this.setState({truncate: true});
+        }
+        // Values of static attributes
+        if(attr.static_value.length > 20){
           this.setState({truncate: true});
         }
       }
@@ -182,7 +186,7 @@ class GenericList extends Component {
         </div>
         <div className="col s12 body">
           {this.props.box_title == "Configurations" ? (
-            <div key="id" className="line">
+            <div key="id" className="line col s12">
               <div className="col s5">
                 <div className="name-value">device id</div>
                 <div className="value-label">Name</div>
@@ -224,8 +228,21 @@ class GenericList extends Component {
 class DyAttributeArea extends Component {
   constructor(props) {
     super(props);
-    this.state = { selected_attributes: [], visible_attributes: {} };
+    this.state = { selected_attributes: [], visible_attributes: {}, static_geo_attr_label:"" };
     this.toggleAttribute = this.toggleAttribute.bind(this);
+  }
+
+  componentWillMount(){
+    // Get static geo attr label
+    for(let k in this.props.device.attrs){
+      for(let j in this.props.device.attrs[k]){
+        if(this.props.device.attrs[k][j].isGeo){
+          if(this.props.device.attrs[k][j].type == "static"){
+            this.setState({static_geo_attr_label: this.props.device.attrs[k][j].label});
+          }
+        }
+      }
+    }
   }
 
   toggleAttribute(attr)
@@ -253,7 +270,6 @@ class DyAttributeArea extends Component {
   }
 
   render() {
-    console.log("Props: ", this.props);
     let lista = this.props.attrs;
     for (let index in lista)
     {
@@ -269,7 +285,7 @@ class DyAttributeArea extends Component {
           (<div className="second-col-label center-align">Select an attribute to be displayed.</div>)
           : null
         }
-        {this.props.openStaticMap ? <PositionStaticWrapper device={this.props.device} /> : null}
+        {this.props.openStaticMap ? <PositionStaticWrapper device={this.props.device} label={this.state.static_geo_attr_label} /> : null}
         {this.state.selected_attributes.map(at => (
           <Attribute key={at.id} device={this.props.device} attr={at} />
         ))}
@@ -496,7 +512,8 @@ class PositionStaticWrapper extends Component {
       opened: false,
       hasPosition: false,
       pos: [],
-      mapquest: false
+      mapquest: false,
+      staticGeoAttrLabel: ""
     };
     this.getDevicesWithPosition = this.getDevicesWithPosition.bind(this);
     this.toogleExpand = this.toogleExpand.bind(this);
@@ -511,7 +528,6 @@ class PositionStaticWrapper extends Component {
     this.setState({opened: state});
   }
 
-
   getDevicesWithPosition(device){
     function parserPosition(position){
       let parsedPosition = position.split(", ");
@@ -524,6 +540,7 @@ class PositionStaticWrapper extends Component {
            if(device.attrs[j][i].type === "static"){
              if(device.attrs[j][i].value_type === "geo:point"){
                device.position = parserPosition(device.attrs[j][i].static_value);
+               //this.setState({staticGeoAttrLabel: device.attrs[j][i].label});
              }
            }
          }
@@ -554,17 +571,23 @@ class PositionStaticWrapper extends Component {
     if (validDevices.length === 0) {
       return <NoData />;
     } else {
-      return <div className={"PositionRendererDiv " + (this.state.opened ? "expanded" : "compressed")}>
-          <div>
-            <Script url="https://www.mapquestapi.com/sdk/leaflet/v2.s/mq-map.js?key=zvpeonXbjGkoRqVMtyQYCGVn4JQG8rd9"
-                    onLoad={this.mqLoaded}>
-            </Script>
+      return <div className={"attributeBox " + (this.state.opened ? "expanded" : "compressed")}>
+          <div className="header">
+            <label>{this.props.label}</label>
+            {!this.state.opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
           </div>
-          {this.state.mapquest ?(
-            <PositionRenderer devices={validDevices} allowContextMenu={false} center={validDevices[0].position} />
-          ) : (
-            <Loading/>
-          )}
+          <div className="details-card-content">
+            <div>
+              <Script url="https://www.mapquestapi.com/sdk/leaflet/v2.s/mq-map.js?key=zvpeonXbjGkoRqVMtyQYCGVn4JQG8rd9"
+                      onLoad={this.mqLoaded}>
+              </Script>
+            </div>
+            {this.state.mapquest ?(
+              <PositionRenderer devices={validDevices} allowContextMenu={false} center={validDevices[0].position} />
+            ) : (
+              <Loading/>
+            )}
+          </div>
         </div>
     }
   }

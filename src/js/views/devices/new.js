@@ -11,7 +11,7 @@ import deviceManager from '../../comms/devices/DeviceManager';
 import DeviceStore from '../../stores/DeviceStore';
 import TagForm from '../../components/TagForm';
 import util from "../../comms/util/util";
-import { DojotBtnCircle, DojotButton } from "../../components/DojotButton";
+import { DojotBtnCircle, DojotBtnClassic, DojotBtnLink } from "../../components/DojotButton";
 
 import TemplateStore from '../../stores/TemplateStore';
 import TemplateActions from '../../actions/TemplateActions';
@@ -154,7 +154,14 @@ class DeviceHandlerStore {
   // }
 
   // addAttr() {
-  //   // check for duplicate names. Do check loadAttrs() for further details.
+  //  
+  
+  
+  
+  
+  
+  
+  // check for duplicate names. Do check loadAttrs() for further details.
   //   // if (this.attrNames.hasOwnProperty(this.newAttr.name)) {
   //   //   this.errorAttr({
   //   //     field: 'name',
@@ -206,7 +213,6 @@ class StaticAttributes extends Component {
   }
 
   render() {
-
     if (!this.props.attrs.length) {
       return (
         <div> </div>
@@ -359,6 +365,7 @@ class DeviceForm extends Component {
     this.save = this.save.bind(this);
 
     this.getStaticAttributes = this.getStaticAttributes.bind(this);
+    this.handleStaticsAttributes = this.handleStaticsAttributes.bind(this);
     this.removeStaticAttributes = this.removeStaticAttributes.bind(this);
   }
 
@@ -370,6 +377,7 @@ class DeviceForm extends Component {
   componentDidUpdate() {
     // if is edition mode, we should wait for templates and iterate over them updating the selected templates
     let templates = this.props.templates.templates;
+    let device = this.props.device.device
     if (
       !this.state.loaded &&
       templates != undefined &&
@@ -385,13 +393,40 @@ class DeviceForm extends Component {
           if (templates[k].id == this.props.device.usedTemplates[tmp_id]) {
             templates[k].active = true;
             list.push(JSON.parse(JSON.stringify(templates[k])));
-            currentAttrs = currentAttrs.concat(this.getStaticAttributes(templates[k]));
+            currentAttrs = currentAttrs.concat(this.handleStaticsAttributes(templates[k], device));
             break;
           }
         }
       }
       this.setState({ selectedTemplates: list, loaded: true, staticAttrs: currentAttrs });
     }
+  }
+
+  handleStaticsAttributes(template, device){
+    function getAttributesFromDevice(deviceAttrs){
+      let configAttrs = []
+      for(let tmp in deviceAttrs){
+        for(let index in deviceAttrs[tmp]){
+          if(deviceAttrs[tmp][index].type == "static" || deviceAttrs[tmp][index].type == "meta"){
+            configAttrs = configAttrs.concat(deviceAttrs[tmp][index]);
+          }
+        }
+      }
+      return configAttrs;
+    }
+    let listAttrs = [];
+    listAttrs = listAttrs.concat(getAttributesFromDevice(device.attrs)); // Handle config attributes from device
+
+    if(this.props.edition){
+      let list = listAttrs.map((attr) => {
+        attr.value = attr.static_value;
+        return attr;
+      });
+      return list;
+    } else {
+      return this.getStaticAttributes(template);
+    }
+
   }
 
   save(e) {
@@ -517,7 +552,18 @@ class DeviceForm extends Component {
         <div className="col s7 data-frame">
           <div className="col s12">
             {this.state.selectedTemplates.length > 0 ? <div className="react-bug-escape">
-                <DeviceHeader name={this.props.device.device.label} onChange={this.handleChange} />
+                <div className="col s12 p0">
+                  <div className="col s9 p0">
+                    <DeviceHeader name={this.props.device.device.label} onChange={this.handleChange} />
+                  </div>
+                  <div className="col s3 p0 mt30px text-right">
+                    <DojotBtnClassic is_secondary={false} onClick={this.save} label="Save" title="Save" />
+                    <div className="col s12 p0 mt10px ">
+                      <DojotBtnClassic is_secondary={true} to="/device/list" label="Discard" title="Discard" />
+                  </div>
+
+                  </div>
+                </div>
                 <StaticAttributes attrs={this.state.staticAttrs} onChange={this.handleChangeAttr} />
                 <div className="attr-box">
                   <div className="col s12">
@@ -531,14 +577,6 @@ class DeviceForm extends Component {
                 Select a template to start
               </div>}
           </div>
-          {this.state.selectedTemplates.length > 0 && <div className="col s12 footer text-right">
-              <a className="waves-effect waves-light btn-flat btn-ciano" onClick={this.save} tabIndex="-1">
-                Save
-              </a>
-              <Link to="/device/list" className="waves-effect waves-light btn-flat btn-ciano" tabIndex="-1">
-                Discard
-              </Link>
-            </div>}
         </div>
 
         <div className="col s5 p0">

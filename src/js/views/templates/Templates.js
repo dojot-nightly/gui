@@ -4,6 +4,8 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import AltContainer from 'alt-container';
 import Materialize from 'materialize-css';
 
+
+import { Loading } from "../../components/Loading";
 import TemplateStore from '../../stores/TemplateStore';
 import TemplateActions from '../../actions/TemplateActions';
 
@@ -12,7 +14,7 @@ import ImageActions from '../../actions/ImageActions';
 
 import { ImageCard, NewImageCard } from "../firmware/elements";
 
-import { Filter, Pagination } from '../utils/Manipulation';
+import { Filter, Pagination, FilterLabel, GenericOperations } from "../utils/Manipulation";
 import util from "../../comms/util/util";
 
 import { NewPageHeader } from "../../containers/full/PageHeader";
@@ -86,7 +88,7 @@ class ImageModal extends Component {
                     <div className="col s12 pl40">
                         <div className="icon-firmware"/>
 
-                        <label className="title">{this.props.template.label}</label>
+                        <label className="title truncate" title={this.props.template.label}>{this.props.template.label}</label>
                         <label className="subtitle">Firmware Management</label>
                     </div>
                     </div>
@@ -172,14 +174,16 @@ class AttributeList extends Component {
     }
 
     componentWillMount(){
-        console.log(this.props.attributes.label, ": ", this.props.attributes.label.length);
+        // console.log(this.props.attributes.label, ": ", this.props.attributes.label.length);
         if(this.props.attributes.label.length > 18){
            this.setState({fieldSizeDyAttrStatus: true});
         }
 
-        console.log(this.props.attributes.static_value, ": ", this.props.attributes.static_value.length);
-        if(this.props.attributes.static_value.length > 18){
-            this.setState({fieldSizeStaticAttrStatus: true});
+        if (this.props.attributes.hasOwnProperty('static_value')) {
+            // console.log(this.props.attributes.static_value, ": ", this.props.attributes.static_value.length);
+            if(this.props.attributes.static_value.length > 18){
+                this.setState({fieldSizeStaticAttrStatus: true});
+            }
         }
     }
 
@@ -198,6 +202,7 @@ class AttributeList extends Component {
     }
 
     render() {
+        const staticValue = this.props.attributes.static_value || "";
         return (
             <div className={"attr-area " + (this.state.isSuppressed ? 'suppressed' : '')}>
                 <div className="attr-row">
@@ -238,8 +243,8 @@ class AttributeList extends Component {
                 <div className="attr-row">
                     <div className="icon"/>
                     <div className={"attr-content"}>
-                        <input className={this.state.fieldSizeStaticAttrStatus ? "truncate": ""} type="text" value={this.props.attributes.static_value} disabled={!this.props.editable}
-                               name={"static_value"} onChange={this.handleChange} maxLength="25" title={this.props.attributes.static_value}/>
+                        <input className={this.state.fieldSizeStaticAttrStatus ? "truncate": ""} type="text" value={staticValue} disabled={!this.props.editable}
+                               name={"static_value"} onChange={this.handleChange} maxLength="25" title={staticValue}/>
                         <select id="select_attribute_type" className="card-select mini-card-select"
                                 name={"type"}
                                 value={this.props.attributes.type}
@@ -275,8 +280,10 @@ class ConfigList extends Component {
     }
 
     componentWillMount(){
-        if(this.props.attributes.static_value.length > 18){
-            this.setState({configFieldSizeStatus: true});
+        if (this.props.attributes.hasOwnProperty('static_value')) {
+            if(this.props.attributes.static_value.length > 18){
+                this.setState({configFieldSizeStatus: true});
+            }
         }
     }
 
@@ -296,8 +303,11 @@ class ConfigList extends Component {
 
     render() {
         // console.log("this.props.attributes", this.props.attributes);
-        if (this.props.attributes.type == "fw_version")
-        return null;
+        if (this.props.attributes.type == "fw_version"){
+            return null;
+        }
+
+        const staticValue = this.props.attributes.static_value || '';
 
         return (
             <div className={"attr-area " + (this.state.isSuppressed ? 'suppressed' : '')}>
@@ -326,12 +336,12 @@ class ConfigList extends Component {
                     <div className="icon"/>
                     <div className={"attr-content"}>
                         <input className={(this.props.attributes.label === "protocol" ? 'none' : '') || (this.state.configFieldSizeStatus ? "truncate": "")}type="text"
-                               name={"static_value"} value={this.props.attributes.static_value}
-                               disabled={!this.props.editable} onChange={this.handleChange} title={this.props.attributes.static_value} maxLength="25"/>
+                               name={"static_value"} value={staticValue}
+                               disabled={!this.props.editable} onChange={this.handleChange} title={staticValue} maxLength="25"/>
                         <select id="select_attribute_type"
                                 className={(this.props.attributes.label === "protocol" ? '' : 'none') + " card-select"}
                                 name={"static_value"}
-                                value={this.props.attributes.static_value}
+                                value={staticValue}
                                 disabled={!this.props.editable}
                                 onChange={this.handleChange}>
                             <option value="">Select type</option>
@@ -470,7 +480,7 @@ class NewAttribute extends Component {
                         </div>
 
                         <div className={"attr-content "}>
-                            <input type="text" value={this.state.newAttr.label} maxLength="22" onChange={this.handleChange}
+                            <input type="text" value={this.state.newAttr.label} maxLength="25" onChange={this.handleChange}
                                    name={"label"}/>
                             <span>Name</span>
                         </div>
@@ -498,7 +508,7 @@ class NewAttribute extends Component {
                         <div className="icon"/>
                         <div className={"attr-content"}>
                             <input className={(this.state.newAttr.value_type === "protocol" ? 'none' : '')} type="text"
-                                   value={this.state.newAttr.value} maxLength="22" onChange={this.handleChange}
+                                   value={this.state.newAttr.value} maxLength="25" onChange={this.handleChange}
                                    name={"value"}/>
 
                             <select id="select_attribute_type"
@@ -1036,18 +1046,17 @@ class TemplateList extends Component {
     }
 
     render() {
-        this.convertTemplateList();
-
+        
         if (this.props.loading) {
             return (
                 <div className="row full-height relative">
-                    <div className="background-info valign-wrapper full-height">
-                        <i className="fa fa-circle-o-notch fa-spin fa-fw horizontal-center"/>
-                    </div>
+                    <Loading />
                 </div>
             )
         }
 
+        this.convertTemplateList();
+        
         if (this.filteredList.length > 0) {
             let existsNewDevice = false;
             let newTemplate;
@@ -1073,7 +1082,7 @@ class TemplateList extends Component {
             }
         }
 
-        return <div className="full-height relative">
+        return <div className="full-height relative overflow-auto">
             {this.filteredList.length > 0 ? <div className="col s12 lst-wrapper w100">
                 {this.filteredList.map(template => (
                   <ListItem
@@ -1091,7 +1100,7 @@ class TemplateList extends Component {
                 ))}
               </div> : <div className="background-info valign-wrapper full-height">
                 <span className="horizontal-center">
-                   No configured templates
+                  No templates to be shown
                 </span>
               </div>}
           </div>;
@@ -1099,18 +1108,16 @@ class TemplateList extends Component {
 }
 
 
-
-class TemplateOperations {
+class TemplateOperations extends GenericOperations {
 
     constructor() {
+        super();
         this.filterParams = {};
-
-        this.paginationParams = {  
-            page_size: 6,
-            page_num: 1
-        }; // default parameters
+        this.paginationParams = {};
+        this.setDefaultPaginationParams();
     }
-    
+
+
     whenUpdatePagination(config) {
         for (let key in config)
             this.paginationParams[key] = config[key];
@@ -1119,6 +1126,8 @@ class TemplateOperations {
 
     whenUpdateFilter(config)
     {
+        // set default parameters
+        this.setDefaultPaginationParams();
         this.filterParams = config;
         this._fetch();
     }
@@ -1130,21 +1139,19 @@ class TemplateOperations {
     }
 }
 
-let opex = new TemplateOperations();
-console.log("opex", opex);
 
 class Templates extends Component {
     
     constructor(props) {
         super(props);
+        this.state = { showFilter: false,
+            has_new_template: false
+        };
         
+        this.temp_opex = new TemplateOperations();
         this.addTemplate = this.addTemplate.bind(this);
         this.toggleSearchBar = this.toggleSearchBar.bind(this);
         this.enableNewTemplate = this.enableNewTemplate.bind(this);
-        this.state = { showFilter: false,
-            showPagination: false,
-            has_new_template: false
-        };
     }
 
     toggleSearchBar() {
@@ -1174,7 +1181,7 @@ class Templates extends Component {
     }
 
     componentDidMount() {
-        opex._fetch();
+        this.temp_opex._fetch();
         this.setState({ 'has_new_template': false });
     }
 
@@ -1183,14 +1190,17 @@ class Templates extends Component {
         this.metaData = { 'alias': 'template' };
     
         return <ReactCSSTransitionGroup transitionName="first" transitionAppear={true} transitionAppearTimeout={100} transitionEnterTimeout={100} transitionLeaveTimeout={100}>
+        <div className={"full-device-area"}>
             <AltContainer store={TemplateStore}>
               <NewPageHeader title="Templates" subtitle="Templates" icon="template">
-                <Pagination showPainel={this.state.showPagination} ops={opex} />
+                <FilterLabel ops={this.temp_opex} text="Filtering Templates" />
+                <Pagination show_pagination={true} ops={this.temp_opex} />
                 <OperationsHeader addTemplate={this.addTemplate} toggleSearchBar={this.toggleSearchBar.bind(this)} />
               </NewPageHeader>
-              <Filter showPainel={this.state.showFilter} metaData={this.metaData} ops={opex} fields={FilterFields} />
+                    <Filter showPainel={this.state.showFilter} metaData={this.metaData} ops={this.temp_opex} fields={FilterFields} />
               <TemplateList enableNewTemplate={this.enableNewTemplate} />
             </AltContainer>
+        </div>
           </ReactCSSTransitionGroup>;
     }
 }
@@ -1209,10 +1219,9 @@ function OperationsHeader(props) {
 }
 
 function FilterFields(props) {
-    return (
-    <div className="col s12 m12">
-      <input id="fld_name" type="text" name="Label" className="form-control form-control-lg" placeholder="Label" value={props.value} onChange={props.onChange} />
-    </div> );
+    return <div className="col s12 m12">
+        <input id="fld_name" type="text" className="form-control form-control-lg" placeholder="Label" name="label" value={props.fields.label} onChange={props.onChange} />
+      </div>;
 }
 
 
