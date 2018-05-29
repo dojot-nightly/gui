@@ -125,7 +125,8 @@ class TemplateTypes {
         ];
         this.availableTypes = [
             {"value": "dynamic", "label": "Dynamic Value"},
-            {"value": "static", "label": "Static Value"}
+            {"value": "static", "label": "Static Value"},
+            {"value": "actuator", "label": "Actuator"}
         ];
         this.configTypes = [
             {"value": "mqtt", "label": "MQTT"}
@@ -134,7 +135,8 @@ class TemplateTypes {
             // {"value": "fw_version", "label": "Firmware Version" },
             {"value": "protocol", "label": "Protocol"},
             {"value": "topic", "label": "Topic"},
-            {"value": "translator", "label": "Translator"}
+            {"value": "translator", "label": "Translator"},
+            {"value": "device_timeout", "label": "Device Timeout"}
         ];
     }
     getValueTypes() {
@@ -371,7 +373,8 @@ class NewAttribute extends Component {
                 "value_type": "",
                 "value": "",
                 "label": ""
-            }
+            },
+            isActuator:false
         };
 
         this.suppress = this.suppress.bind(this);
@@ -405,6 +408,13 @@ class NewAttribute extends Component {
         const target = event.target;
         let state = this.state;
         state.newAttr[target.name] = target.value;
+        if(target.value == "actuator"){
+            state.isActuator = true;
+        } else {
+            if(target.value == "dynamic" || target.value == "static"){
+                state.isActuator = false;
+            }
+        }
         this.setState(state);
     }
 
@@ -415,19 +425,13 @@ class NewAttribute extends Component {
             return;
         }
 
-        if (attribute.value_type === "") {
-            Materialize.toast("Missing type.", 4000);
-            return;
-        }
-
-        ret = util.isTypeValid(attribute.value, attribute.value_type, attribute.type);
+        ret = util.isTypeValid(attribute.value, attribute.value_type, attribute.type, this.state.isActuator);
         if (!ret.result){
             Materialize.toast(ret.error, 4000);
             return;
         }
 
-
-        this.props.addAttribute(attribute, this.state.isConfiguration);
+        this.props.addAttribute(attribute, this.state.isConfiguration, this.state.isActuator);
         this.suppress();
     }
 
@@ -444,7 +448,6 @@ class NewAttribute extends Component {
     }
 
     render() {
-
         return (
             <div className={"new-attr-area attr-area " + (this.state.isSuppressed ? 'suppressed-shadow' : '')}>
 
@@ -482,6 +485,7 @@ class NewAttribute extends Component {
                             <span>Name</span>
                         </div>
                     </div>
+
                     <div className="attr-row">
                         <div className="icon">
                             <img className={(this.state.isConfiguration ? '' : 'none')} src={"images/add-gear.png"}/>
@@ -499,14 +503,17 @@ class NewAttribute extends Component {
                                 ))}
                             </select>
                             <span>Type</span>
-                        </div>
+                        </div>                              
                     </div>
                     <div className="attr-row">
                         <div className="icon"/>
                         <div className={"attr-content"}>
-                            <input className={(this.state.newAttr.value_type === "protocol" ? 'none' : '')} type="text"
-                                   value={this.state.newAttr.value} maxLength="22" onChange={this.handleChange}
-                                   name={"value"}/>
+                            {this.state.isActuator ? null :
+                            (
+                                <input className={(this.state.newAttr.value_type === "protocol" ? 'none' : '')} type="text"
+                                value={this.state.newAttr.value} maxLength="22" onChange={this.handleChange}
+                                name={"value"}/>  
+                            )}
 
                             <select id="select_attribute_type"
                                     className={(this.state.isConfiguration ? (this.state.newAttr.value_type === 'protocol' ? '' : 'none') : 'none') + " card-select dark-background"}
@@ -518,6 +525,7 @@ class NewAttribute extends Component {
                                     <option value={opt.value} key={opt.label}>{opt.label}</option>
                                 )}
                             </select>
+                            
                             <span className={(this.state.isConfiguration ? '' : 'none')}>Value</span>
 
                             <select id="select_attribute_type"
@@ -531,9 +539,7 @@ class NewAttribute extends Component {
                                 )}
                             </select>
                         </div>
-                    </div>
-
-
+                    </div>                     
                     <div className="material-btn center-text-parent" title="Add a new Attribute"
                          onClick={this.addAttribute.bind(this, this.state.newAttr)}>
                         <span className="text center-text-child light-text">add</span>
@@ -705,7 +711,6 @@ class ListItem extends Component {
     addAttribute(attribute, isConfiguration) {
         let state = this.state.template;
         if (isConfiguration) {
-
             // we should check if config_attrs and data_attrs already contains the pair (label, type) before save it.
 
             if (state.config_attrs.filter(
@@ -806,8 +811,10 @@ class ListItem extends Component {
             Materialize.toast(ret.error, 4000);
             return;
         }
+
         this.state.template.attrs.push.apply(this.state.template.attrs, this.state.template.data_attrs);
         this.state.template.attrs.push.apply(this.state.template.attrs ,this.state.template.config_attrs);
+
         TemplateActions.addTemplate(this.state.template, (template) => {
             Materialize.toast('Template created', 4000);
             TemplateActions.removeSingle("new_template");
@@ -872,15 +879,17 @@ class ListItem extends Component {
         }
 
         let attrs = this.state.template.data_attrs.length + this.state.template.config_attrs.length;
+
+        console.log("state: ", this.state);
         return (
-            <div>
+            <div className={"mg20px "+ (this.state.template.isNewTemplate ? 'flex-order-1' : 'flex-order-2')}>
             {this.state.show_image_modal ? (
                 <AltContainer store={ImageStore}>
                         <ImageModal updateDefaultVersion={this.updateDefaultVersion} template={this.state.template} refreshImages={this.refreshImages} toggleModal={this.toggleImageModal} />
                 </AltContainer>
             ) : null }
 
-            <div className={"template card-size lst-entry-wrapper z-depth-2 " + (this.state.isSuppressed ? 'suppressed' : 'full-height')}
+                <div className={"template card-size lst-entry-wrapper z-depth-2 mg0px " + (this.state.isSuppressed ? 'suppressed' : 'full-height')}
                 id={this.props.id}>
                 {this.state.show_modal ?(
                   <RemoveModal name={"template"} remove={this.deleteTemplate} openModal={this.openModal} />
@@ -1143,7 +1152,7 @@ class TemplateList extends Component {
         <ReactCSSTransitionGroup transitionName="templatesSubHeader">
           {header}
         </ReactCSSTransitionGroup>
-            {this.filteredList.length > 0 ? <div className="col s12 lst-wrapper w100">
+            {this.filteredList.length > 0 ? <div className="col s12 lst-wrapper w100 display-flex">
                 {this.filteredList.map(template => (
                   <ListItem
                     template={template}
