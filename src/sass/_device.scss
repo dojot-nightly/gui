@@ -289,7 +289,6 @@
       height: 100%;
       text-align: center;
       padding-top: 17px;
-      text-transform: capitalize;
       font-weight: bold;
       font-size: 17px;
     }
@@ -303,10 +302,12 @@
 .fix-map-bug{
     height: 100%;
     width: 100%;
+    padding-top: 2px;
 
     .flex-wrapper
     {
-      //margin-top: 3px;
+      height: 100%;
+      // margin-top: 3px;
     }
 }
 
@@ -606,7 +607,7 @@
 
   .deviceCanvas {
     width: 100% !important;
-    height: calc(100% - 40px) !important;
+    height: calc(100% - 60px) !important;
 
     .background-info {
       float: left;

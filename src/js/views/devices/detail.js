@@ -69,11 +69,18 @@ class Attribute extends Component {
   }
 
   render() {
+    // check the current window, if less then 1024px, blocks compressed state
+    let width = window.innerWidth
+      || document.documentElement.clientWidth
+      || document.body.clientWidth;
+    let opened = this.state.opened; 
+      if (width < 1168 )
+      opened = true;
 
-    return <div className={"attributeBox " + (this.state.opened ? "expanded" : "compressed")}>
+    return <div className={"attributeBox " + (opened ? "expanded" : "compressed")}>
         <div className="header">
           <label>{this.props.attr.label}</label>
-          {!this.state.opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
+          {!opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
         </div>
 
         {/* <AttributeBox attrs={this.state.selected_attributes} /> */}
@@ -187,13 +194,15 @@ class GenericList extends Component {
         <div className="col s12 body">
           {this.props.box_title == "Configurations" ? (
             <div key="id" className="line col s12">
-              <div className="col s5">
-                <div className="name-value">device id</div>
-                <div className="value-label">Name</div>
-              </div>
-              <div className="col s7" >
-                <div className="value-value">{this.props.device.id}</div>
-                <div className="value-label">STRING</div>
+              <div className="col s12">
+                <div className="col s5">
+                  <div className="name-value">device id</div>
+                  <div className="value-label">Name</div>
+                </div>
+                <div className="col s7" >
+                  <div className="value-value">{this.props.device.id}</div>
+                  <div className="value-label">STRING</div>
+                </div>              
               </div>
             </div>
           ):("")}
@@ -291,12 +300,41 @@ class DyAttributeArea extends Component {
         ))}
       </div>
       <div className="third-col">
-        <DynamicAttributeList device={this.props.device} attrs={lista} change_attr={this.toggleAttribute} />
+        <div className="row">
+          <DynamicAttributeList device={this.props.device} attrs={lista} change_attr={this.toggleAttribute} />        
+        </div>
+        <div className="row">
+          <ActuatorsArea actuators={this.props.actuators} />        
+        </div>
       </div>
     </div>
   }
 }
 
+class ActuatorsArea extends Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return <div className=" dy_attributes">
+        <div className="col s12 header">
+          <div className="col s2"></div>
+          <label className="col s8">Actuators</label>
+        </div>
+        <div className="col s12 body">
+          {this.props.actuators.map(actuator => (
+            <div key={actuator.label} className="line" >
+              <div className="col offset-s2 s8">
+                <div className="label truncate" title={actuator.label}>{actuator.label}</div>
+                {/* <div className="value-label">{attr.value_type}</div> */}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>;
+  }
+}
 
 class DynamicAttributeList extends Component {
   constructor(props) {
@@ -608,6 +646,7 @@ class DeviceDetail extends Component {
   render() {
      let attr_list = [];
      let dal = [];
+     let actuators = [];
      let config_list = [];
      for (let index in this.props.device.attrs)
      {
@@ -619,6 +658,10 @@ class DeviceDetail extends Component {
            i.visible = false;
            return String(i.type) === "dynamic";
          }));
+        actuators = actuators.concat(tmp.filter(i => {
+          i.visible = false;
+          return String(i.type) === "actuator";
+        }));
       config_list = config_list.concat(tmp.filter(i => {
            return String(i.type) === "meta";
          }));
@@ -630,12 +673,13 @@ class DeviceDetail extends Component {
         }
      }
 
+     console.log("attrs: ", dal);
      return <div className="row detail-body">
          <div className="first-col">
            <Configurations device={this.props.device} attrs={config_list} />
            <StaticAttributes device={this.props.device} attrs={attr_list} openStaticMap={this.openStaticMap}/>
          </div>
-        <DyAttributeArea device={this.props.device} attrs={dal} openStaticMap={this.state.openStaticMap}/>
+        <DyAttributeArea device={this.props.device} actuators={actuators} attrs={dal} openStaticMap={this.state.openStaticMap}/>
        </div>;
   }
 }
@@ -667,7 +711,7 @@ class ViewDeviceImpl extends Component {
     // this is not good, but will have to make do because of z-index on the action header
     e.preventDefault();
     //console.log("Id: ", id);
-      DeviceActions.triggerRemoval({id: this.props.device_id}, (device) => {
+      DeviceActions.triggerRemoval({id: this.props.device_id}, (response) => {
       hashHistory.push('/device/list');
       Materialize.toast('Device removed', 4000);
     });
