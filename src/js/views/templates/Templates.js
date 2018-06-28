@@ -2,8 +2,7 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import AltContainer from 'alt-container';
-import Materialize from 'materialize-css';
-
+import toaster from "../../comms/util/materialize";
 
 import { Loading } from "../../components/Loading";
 import TemplateStore from '../../stores/TemplateStore';
@@ -420,15 +419,22 @@ class NewAttribute extends Component {
     }
 
     addAttribute(attribute) {
+
         let ret = util.isNameValid(attribute.label);
         if (!ret.result && !this.state.isConfiguration) {
-            Materialize.toast(ret.error, 4000);
+            toaster.error(ret.error);
             return;
         }
 
         ret = util.isTypeValid(attribute.value, attribute.value_type, attribute.type, this.state.isActuator);
         if (!ret.result){
-            Materialize.toast(ret.error, 4000);
+            toaster.error(ret.error);
+            return;
+        }
+
+        // type of attribute can't be empty
+        if(attribute.value_type == ""){
+            toaster.error("You can't leave type empty");
             return;
         }
 
@@ -512,7 +518,7 @@ class NewAttribute extends Component {
                             {this.state.isActuator ? null :
                             (
                                 <input className={(this.state.newAttr.value_type === "protocol" ? 'none' : '')} type="text"
-                                value={this.state.newAttr.value} maxLength="22" onChange={this.handleChange}
+                                value={this.state.newAttr.value} maxLength="25" onChange={this.handleChange}
                                 name={"value"}/>  
                             )}
 
@@ -687,19 +693,15 @@ class ListItem extends Component {
     }
 
     updateTemplate(e) {
+
         if (e != undefined)
             e.preventDefault();
+
+        // Verify template name
         let ret = util.isNameValid(this.state.template.label);
         if (!ret.result && !this.state.isConfiguration) {
-            Materialize.toast(ret.error, 4000);
+            toaster.error(ret.error);
             return;
-        }
-
-        for (let i = 0; i < this.state.template.config_attrs.length; i++) {
-          if (this.state.template.config_attrs[i].label === "") {
-              Materialize.toast("Missing type.", 4000);
-              return;
-          }
         }
 
         let template = this.state.template;
@@ -709,9 +711,56 @@ class ListItem extends Component {
         this.state.template.attrs.push.apply(this.state.template.attrs ,this.state.template.config_attrs);
 
         this.removeAttributeId(this.state.template);
+        // Validation of template attributes
+        for(let k in this.state.template.attrs){
+            // Validation of config attributes
+            if(this.state.template.attrs[k].type == "meta"){
+                if(this.state.template.attrs[k].label == ""){
+                    toaster.error("You can't leave configuration attribute type empty");
+                    return;                   
+                }
+
+                if(this.state.template.attrs[k].static_value == ""){
+                    toaster.error("You can't leave configuration attribute value empty");
+                    return;                      
+                }
+
+                // Validation of device_timeout
+                if(this.state.template.attrs[k].label == "device_timeout"){
+                    ret = util.isDeviceTimeoutValid(this.state.template.attrs[k].static_value);
+                    if(!ret.result){
+                        toaster.error(ret.error);
+                        return;
+                    }
+                }
+            } else {
+                // Validation of data attributes
+                if(this.state.template.attrs[k].label == ""){
+                    toaster.error("You can't leave attribute name empty");
+                    return;
+                }
+                if(this.state.template.attrs[k].type == "static"){
+                    ret = util.isTypeValid(this.state.template.attrs[k].static_value, this.state.template.attrs[k].value_type, this.state.template.attrs[k].type)
+                    if(!ret.result){
+                        toaster.error(ret.error);
+                        return;                        
+                    }
+                }
+            }
+            
+            // Verify if name is already exist
+            for(let j in this.state.template.attrs){
+                if(k!=j){
+                    if(this.state.template.attrs[k].label == this.state.template.attrs[j].label){
+                        toaster.error("Name is already exist");
+                        return;
+                    }
+                }
+            }
+        }
 
         TemplateActions.triggerUpdate(this.state.template, (template) => {
-          Materialize.toast('Template updated', 4000);
+          toaster.success('Template updated');
         });
     }
 
@@ -725,7 +774,8 @@ class ListItem extends Component {
         e.preventDefault();
           TemplateActions.triggerRemoval(this.state.template.id, (template) => {
           hashHistory.push('/template/list');
-          Materialize.toast('Template removed', 4000);
+          toaster.success('Template removed');
+          this.props.temp_opex._fetch();
         });
     }
 
@@ -736,11 +786,11 @@ class ListItem extends Component {
 
             if (state.config_attrs.filter(
                 function (elem, index) {
-                    return elem.label == attribute.value_type && elem.static_value == attribute.value;
+                    return elem.label == attribute.value_type;
                 }
             )[0])
             {
-                Materialize.toast("The pair (label, type) is already created.", 4000);
+                toaster.warning("The label " + attribute.value_type + " is already created.");
                 return;
             }
 
@@ -754,12 +804,12 @@ class ListItem extends Component {
         } else {
             if (state.data_attrs.filter(
                 function (elem, index) {
-                    return elem.label == attribute.label && elem.value_type == attribute.value_type;
+                    return elem.label == attribute.label;
 
                 }
             )[0])
             {
-                Materialize.toast("The pair (label, type) is already created.", 4000);
+                toaster.warning("The label " + attribute.label + " is already created.");
                 return;
             }
 
@@ -829,15 +879,14 @@ class ListItem extends Component {
         e.preventDefault();
         let ret = util.isNameValid(this.state.template.label);
         if (!ret.result && !this.state.isConfiguration) {
-            Materialize.toast(ret.error, 4000);
+            toaster.error(ret.error);
             return;
         }
 
         this.state.template.attrs.push.apply(this.state.template.attrs, this.state.template.data_attrs);
         this.state.template.attrs.push.apply(this.state.template.attrs ,this.state.template.config_attrs);
-
         TemplateActions.addTemplate(this.state.template, (template) => {
-            Materialize.toast('Template created', 4000);
+            toaster.success('Template created.');
             TemplateActions.removeSingle("new_template");
             this.props.enableNewTemplate();
         })
@@ -1128,13 +1177,14 @@ class TemplateList extends Component {
                     deleteTemplate={this.deleteTemplate}
                     enableNewTemplate={this.props.enableNewTemplate}
                     confirmTarget="confirmDiag"
+                    temp_opex={this.props.temp_opex}
                   />
                 ))}
               </div> : <div className="background-info valign-wrapper full-height">
                 <span className="horizontal-center">
                         {this.props.temp_opex.hasFilter() ?
-                        <b>No templates to be shown</b>
-                        : <b>No configured templates</b>
+                            <b className='noBold'>No templates to be shown</b>
+                            : <b className='noBold'>No configured templates</b>
                     }
                 </span>
               </div>}
