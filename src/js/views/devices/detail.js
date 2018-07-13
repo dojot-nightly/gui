@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { NewPageHeader } from "../../containers/full/PageHeader";
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import {  hashHistory } from 'react-router'
 import AltContainer from 'alt-container';
 import MeasureStore from '../../stores/MeasureStore';
@@ -9,15 +8,13 @@ import MeasureActions from '../../actions/MeasureActions';
 import DeviceActions from '../../actions/DeviceActions';
 import DeviceStore from '../../stores/DeviceStore';
 import util from "../../comms/util/util";
-import DeviceMeta from '../../stores/DeviceMeta';
 import { Loading } from "../../components/Loading";
-import { Attr } from "../../components/HistoryElements";
-import { PositionRenderer } from './DeviceMap.js'
+import { Attr, HandleGeoElements } from "../../components/HistoryElements";
 import { MapWrapper } from './Devices.js'
-import { DojotBtnRedCircle } from "../../components/DojotButton";
 import Script from 'react-load-script';
 import toaster from "../../comms/util/materialize";
-
+import { DojotBtnRedCircle } from "../../components/DojotButton";
+import { RemoveModal } from "../../components/Modal";
 
 
 class Tooltip extends Component{
@@ -78,17 +75,17 @@ class Attribute extends Component {
       if (width < 1168 )
       opened = true;
 
-    return <div className={"attributeBox " + (opened ? "expanded" : "compressed")}>
-        <div className="header">
-          <label>{this.props.attr.label}</label>
-          {!opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
-        </div>
+      return <div className={"attributeBox " + (opened ? "expanded" : "compressed")}>
+      <div className="header">
+        <label>{this.props.attr.label}</label>
+        {!opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
+      </div>
 
-        {/* <AttributeBox attrs={this.state.selected_attributes} /> */}
-        <div className="details-card-content">
-          <AttrHistory device={this.props.device} type={this.props.attr.value_type} attr={this.props.attr.label} />
-        </div>
-      </div>;
+      {/* <AttributeBox attrs={this.state.selected_attributes} /> */}
+      <div className="details-card-content">
+        <AttrHistory device={this.props.device} type={this.props.attr.value_type} attr={this.props.attr.label} />
+      </div>
+    </div>;
   }
 }
 
@@ -195,12 +192,12 @@ class GenericList extends Component {
         <div className="col s12 body">
           {this.props.box_title == "Configurations" ? (
             <div key="id" className="line col s12">
-              <div className="col s12">
+              <div className="col s12 pr0">
                 <div className="col s5">
                   <div className="name-value">device id</div>
                   <div className="value-label">Name</div>
                 </div>
-                <div className="col s7" >
+                <div className="col s7 p0 text-right" >
                   <div className="value-value">{this.props.device.id}</div>
                   <div className="value-label">STRING</div>
                 </div>              
@@ -208,7 +205,8 @@ class GenericList extends Component {
             </div>
           ):("")}
           {this.props.attrs.map(attr => (
-            <div key={attr.label} className="line col s12">
+            attr.isGeo ? (
+              <div key={attr.label} className="line col s12" id="static-geo-attribute" onClick={this.openMap} >
               {/*<div className="col s4">
                 <div className="name-value">{attr.label}</div>
                 <div className="value-label">Name</div>
@@ -220,13 +218,25 @@ class GenericList extends Component {
                   {/*<div className="name-value col s12">{attr.label}</div>
                   <div className="value-label">Name</div>*/}
               </div>
-              {attr.isGeo ?
-                <div className="star" onClick={this.openMap}>
-                    <i className={"fa " + (this.state.visible_static_map ? "fa-star" : "fa-star-o")} />
-                </div> :
-                null
-              }
+              <div className="star" >
+                  <i className={"fa " + (this.state.visible_static_map ? "fa-star" : "fa-star-o")} />
+              </div>
              </div>
+            ):(
+              <div key={attr.label} className="line col s12">
+              {/*<div className="col s4">
+                <div className="name-value">{attr.label}</div>
+                <div className="value-label">Name</div>
+              </div>*/}
+              <div className="col s12" >
+                <div className={this.state.truncate ? "name-value col s10 truncate": "name-value col s10"} title={attr.label}>{attr.label}</div>
+                <div className={this.state.truncate ? "value-value col s10 truncate": "value-value col s10"} title={attr.static_value}>{attr.static_value}</div>
+                <div className="value-label col s2" title={attr.value_type} >{attr.value_type}</div>
+                  {/*<div className="name-value col s12">{attr.label}</div>
+                  <div className="value-label">Name</div>*/}
+              </div>
+             </div>              
+            )
           ))}
         </div>
       </div>;
@@ -295,7 +305,7 @@ class DyAttributeArea extends Component {
           (<div className="second-col-label center-align">Select an attribute to be displayed.</div>)
           : null
         }
-        {this.props.openStaticMap ? <PositionStaticWrapper device={this.props.device} label={this.state.static_geo_attr_label} /> : null}
+        {this.props.openStaticMap ? <HandleGeoElements device={this.props.device} label={this.state.static_geo_attr_label} isStatic={true} /> : null}
         {this.state.selected_attributes.map(at => (
           <Attribute key={at.id} device={this.props.device} attr={at} />
         ))}
@@ -383,17 +393,17 @@ class DynamicAttributeList extends Component {
           <div className="col s2 filter-icon">
             {/* <i className="fa fa-filter" /> */}
           </div>
-          <label className="col s8">Dynamic Attributes</label>
-          <div className="col s2 search-icon">
+          <label className="col s10">Dynamic attributes</label>
+          {/* <div className="col s2 search-icon">
             <i className="fa fa-search" />
-          </div>
+          </div> */}
         </div>
         <div className="col s12 body">
           {this.props.attrs.map(attr => (
             <div key={attr.label} className="line" onClick={this.clickAttr.bind(this, attr)}>
               <div className="col offset-s2 s8">
                 <div className={this.state.truncate ? "label truncate" : "label"} title={attr.label}>{attr.label}</div>
-                {/* <div className="value-label">{attr.value_type}</div> */}
+                <div className="value-label">{attr.value_type}</div>
               </div>
               <div className="col s2">
                 <div className="star" >
@@ -409,54 +419,6 @@ class DynamicAttributeList extends Component {
 
 
 
-class RemoveDialog extends Component {
-  constructor(props) {
-    super(props);
-
-    this.dismiss = this.dismiss.bind(this);
-    this.remove = this.remove.bind(this);
-  }
-
-  componentDidMount() {
-    // materialize jquery makes me sad
-    let modalElement = ReactDOM.findDOMNode(this.refs.modal);
-    $(modalElement).ready(function() {
-      $('.modal').modal();
-    })
-  }
-
-  dismiss(event) {
-    event.preventDefault();
-    let modalElement = ReactDOM.findDOMNode(this.refs.modal);
-    $(modalElement).modal('close');
-  }
-
-  remove(event) {
-    event.preventDefault();
-    let modalElement = ReactDOM.findDOMNode(this.refs.modal);
-    this.props.callback(event);
-    $(modalElement).modal('close');
-  }
-
-  render() {
-    return (
-      <div className="modal" id={this.props.target} ref="modal">
-        <div className="modal-content full">
-          <div className="row center background-info">
-            <div><i className="fa fa-exclamation-triangle fa-4x" /></div>
-            <div>You are about to remove this device.</div>
-            <div>Are you sure?</div>
-          </div>
-        </div>
-        <div className="modal-footer right">
-            <button type="button" className="btn-flat btn-ciano waves-effect waves-light" onClick={this.dismiss}>cancel</button>
-            <button type="submit" className="btn-flat btn-red waves-effect waves-light" onClick={this.remove}>remove</button>
-        </div>
-      </div>
-    )
-  }
-}
-
 class DeviceUserActions extends Component {
   constructor(props) {
     super(props);
@@ -464,10 +426,8 @@ class DeviceUserActions extends Component {
   }
 
   removeDevice(event) {
-      event.preventDefault();
-      $("#" + this.props.confirmTarget).modal("open");
+    this.props.setModal(true);
   }
-
 
   render() {
     return (
@@ -501,16 +461,13 @@ class AttrHistory extends Component {
   render() {
     return (
       <div className="graphLarge">
-        <div className="contents no-padding">
-          <AltContainer store={MeasureStore}>
-            <Attr device={this.props.device} type={this.props.type} attr={this.props.attr} />
-          </AltContainer>
-        </div>
+        <AltContainer store={MeasureStore}>
+          <Attr device={this.props.device} type={this.props.type} attr={this.props.attr} label={this.props.attr} isStatic={false}/>
+        </AltContainer>
       </div>
     );
   }
 }
-
 
 function getAttrsLength(attrs){
   let length = 0;
@@ -542,94 +499,6 @@ function StatusDisplay(props) {
       </div>
     </div>
   )
-}
-
-class PositionStaticWrapper extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      opened: false,
-      hasPosition: false,
-      pos: [],
-      mapquest: false,
-      staticGeoAttrLabel: ""
-    };
-    this.getDevicesWithPosition = this.getDevicesWithPosition.bind(this);
-    this.toogleExpand = this.toogleExpand.bind(this);
-    this.mqLoaded = this.mqLoaded.bind(this);
-  }
-
-  mqLoaded(){
-    this.setState({mapquest: true});
-  }
-
-  toogleExpand(state) {
-    this.setState({opened: state});
-  }
-
-  getDevicesWithPosition(device){
-    function parserPosition(position){
-      let parsedPosition = position.split(", ");
-      return [parseFloat(parsedPosition[0]), parseFloat(parsedPosition[1])];
-    }
-
-    let validDevices = [];
-       for(let j in device.attrs){
-         for(let i in device.attrs[j]){
-           if(device.attrs[j][i].type === "static"){
-             if(device.attrs[j][i].value_type === "geo:point"){
-               device.position = parserPosition(device.attrs[j][i].static_value);
-               //this.setState({staticGeoAttrLabel: device.attrs[j][i].label});
-             }
-           }
-         }
-       }
-
-      device.select = true;
-      if(device.position !== null && device.position !== undefined){
-        validDevices.push(device);
-      }
-    return validDevices;
-  }
-
-  render() {
-    function NoData() {
-        return (
-          <div className="valign-wrapper full-height background-info">
-            <div className="full-width center">No position <br />available</div>
-          </div>
-        )
-    }
-
-    if (this.props.device === undefined)
-    {
-      return (<NoData />);
-    }
-
-    let validDevices = this.getDevicesWithPosition(this.props.device);
-    if (validDevices.length === 0) {
-      return <NoData />;
-    } else {
-      return <div className={"attributeBox " + (this.state.opened ? "expanded" : "compressed")}>
-          <div className="header">
-            <label>{this.props.label}</label>
-            {!this.state.opened ? <i onClick={this.toogleExpand.bind(this, true)} className="fa fa-expand" /> : <i onClick={this.toogleExpand.bind(this, false)} className="fa fa-compress" />}
-          </div>
-          <div className="details-card-content">
-            <div>
-              <Script url="https://www.mapquestapi.com/sdk/leaflet/v2.s/mq-map.js?key=zvpeonXbjGkoRqVMtyQYCGVn4JQG8rd9"
-                      onLoad={this.mqLoaded}>
-              </Script>
-            </div>
-            {this.state.mapquest ?(
-              <PositionRenderer devices={validDevices} allowContextMenu={false} center={validDevices[0].position} />
-            ) : (
-              <Loading/>
-            )}
-          </div>
-        </div>
-    }
-  }
 }
 
 class DeviceDetail extends Component {
@@ -689,7 +558,10 @@ class DeviceDetail extends Component {
 class ViewDeviceImpl extends Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      show_modal: false
+    }
+    this.setModal = this.setModal.bind(this);
     this.remove = this.remove.bind(this);
   }
 
@@ -711,19 +583,19 @@ class ViewDeviceImpl extends Component {
     // This should be on DeviceUserActions -
     // this is not good, but will have to make do because of z-index on the action header
     e.preventDefault();
-    //console.log("Id: ", id);
-      DeviceActions.triggerRemoval({id: this.props.device_id}, (response) => {
-      hashHistory.push('/device/list');
+    DeviceActions.triggerRemoval({id: this.props.device_id}, (response) => {
       toaster.success('Device removed.');
+      hashHistory.push('/device/list');
     });
   }
 
+  setModal(status) {
+    this.setState({ show_modal: status });
+  }
+
+
   render() {
-    let title = "View device";
-
     let device = undefined;
-    let teste = DeviceMeta.getState();
-
 
     if (this.props.devices !== undefined){
       if (this.props.devices.hasOwnProperty(this.props.device_id)) {
@@ -735,19 +607,16 @@ class ViewDeviceImpl extends Component {
       return (<Loading />);
     }
 
-     return (
-      <div className="full-height bg-light-gray">
-      <NewPageHeader title="Devices" subtitle="device manager" icon="device">
-          <div className="box-sh">
-            <DeviceUserActions devices={this.props.devices} deviceid={device.id} confirmTarget="confirmDiag"/>
-          </div>
-          <RemoveDialog callback={this.remove} target="confirmDiag" />
-        </NewPageHeader>
-        <DeviceHeader device={device}>
-        </DeviceHeader>
-        <DeviceDetail deviceid={device.id} device={device}/>
-      </div>
-    )
+     return <div className="full-height bg-light-gray">
+         <NewPageHeader title="Devices" subtitle="device manager" icon="device">
+           <div className="box-sh">
+             <DeviceUserActions devices={this.props.devices} deviceid={device.id}  setModal={this.setModal} />
+           </div>
+         </NewPageHeader>
+         <DeviceHeader device={device} />
+         <DeviceDetail deviceid={device.id} device={device} />
+          {this.state.show_modal ? <RemoveModal name={"device"} remove={this.remove} openModal={this.setModal} /> : <div />}
+       </div>;
   }
 }
 
@@ -803,16 +672,9 @@ class ViewDevice extends Component {
   render() {
     return (
       <div className="full-width full-height">
-        <ReactCSSTransitionGroup
-          transitionName="first"
-          transitionAppear={true}
-          transitionAppearTimeout={500}
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={500} >
           <AltContainer store={DeviceStore}>
             <ViewDeviceImpl device_id={this.props.params.device} />
           </AltContainer>
-        </ReactCSSTransitionGroup>
       </div>
     );
   }

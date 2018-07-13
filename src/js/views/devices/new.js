@@ -20,6 +20,8 @@ import MaterialSelect from "../../components/MaterialSelect";
 import MaterialInput from "../../components/MaterialInput";
 import toaster from "../../comms/util/materialize";
 
+import { DojotBtnRedCircle } from "../../components/DojotButton";
+
 
 /*
  Below begins the React Flux's hell
@@ -325,7 +327,6 @@ class AttrBox extends Component {
   }
 
   render() {
-    console.log("")
     let attr_list = this.props.attrs.filter((attr) => { return attr.type == 'dynamic'});
 
     console.log("attr_list", attr_list);
@@ -464,7 +465,6 @@ class DeviceForm extends Component {
 
     let to_be_checked = DeviceFormStore.getState().device;
     let ret = util.isNameValid(to_be_checked.label);
-    console.log("entrou aqui", ret);
     if (!ret.result) {
       toaster.error(ret.error);
       return;
@@ -487,7 +487,7 @@ class DeviceForm extends Component {
     const ongoingOps = DeviceStore.getState().loading;
     if (ongoingOps == false) {
       console.log("ongoingOps");
-      this.props.operator(JSON.parse(JSON.stringify(DeviceFormStore.getState().device)));
+      this.props.operator(JSON.parse(JSON.stringify(DeviceFormStore.getState().device)), this.props.deviceid);
     }
   }
 
@@ -567,7 +567,6 @@ class DeviceForm extends Component {
   }
 
   render() {
-    console.log("PROPS-DEVICE-FORM: ", this.props);
     // preparing template list to be used
     let templates = this.props.templates.templates;
     for(let k in templates){
@@ -591,7 +590,7 @@ class DeviceForm extends Component {
                   <div className="col s3 p0 mt30px text-right">
                     <DojotBtnClassic is_secondary={false} onClick={this.save} label="Save" title="Save" />
                     <div className="col s12 p0 mt10px ">
-                      <DojotBtnClassic is_secondary={true} to="/device/list" label="Discard" title="Discard" />
+                      <DojotBtnClassic is_secondary={true} to={this.props.edition ? "/device/id/"+this.props.deviceid+"/detail" : "/device/list"} label="Discard" title="Discard" />
                   </div>
 
                   </div>
@@ -784,24 +783,35 @@ class NewDevice extends Component {
       ops = function(device) {
         DeviceActions.triggerUpdate(device, () => {
           toaster.success('Device updated');
+          hashHistory.push('/device/list');
         });
       }
     }
-
-    return (
-      <div className="full-width full-height">
-        <ReactCSSTransitionGroup
-          transitionName="first"
-          transitionAppear={true} transitionAppearTimeout={500}
-          transitionEntattrTypeerTimeout={500} transitionLeaveTimeout={500} >
+    console.log("this.props,", this.props);
+    return <div className="full-width full-height">
+        <ReactCSSTransitionGroup transitionName="first" transitionAppear={true} transitionAppearTimeout={500} transitionEntattrTypeerTimeout={500} transitionLeaveTimeout={500}>
           <NewPageHeader title="Devices" subtitle="device manager" icon="device">
+            <div className="box-sh">
+            {this.props.params.device ? (
+                <DojotBtnRedCircle
+                  to={"/device/id/" + this.props.params.device + "/detail"}
+                  icon="fa fa-arrow-left"
+                  tooltip="Return to device details"
+                />
+              ) : (
+                <DojotBtnRedCircle
+                  to={"/device/list"}
+                  icon="fa fa-arrow-left"
+                  tooltip="Return to device list"
+                />
+              )}
+            </div>
           </NewPageHeader>
-          <AltContainer stores={{device: DeviceFormStore, templates: TemplateStore}} >
-           <DeviceForm deviceid={this.props.params.device} edition={edition} operator={ops} />
+          <AltContainer stores={{ device: DeviceFormStore, templates: TemplateStore }}>
+            <DeviceForm deviceid={this.props.params.device} edition={edition} operator={ops} />
           </AltContainer>
         </ReactCSSTransitionGroup>
-      </div>
-    )
+      </div>;
   }
 }
 

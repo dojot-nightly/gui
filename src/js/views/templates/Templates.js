@@ -19,7 +19,7 @@ import util from "../../comms/util/util";
 import { NewPageHeader } from "../../containers/full/PageHeader";
 import { hashHistory } from 'react-router';
 
-import { GenericModal, RemoveModal } from "../../components/Modal";
+import { RemoveModal } from "../../components/Modal";
 import Toggle from 'material-ui/Toggle';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
@@ -713,6 +713,7 @@ class ListItem extends Component {
         this.removeAttributeId(this.state.template);
         // Validation of template attributes
         for(let k in this.state.template.attrs){
+            console.log("attrs: ", this.state.template.attrs);
             // Validation of config attributes
             if(this.state.template.attrs[k].type == "meta"){
                 if(this.state.template.attrs[k].label == ""){
@@ -739,6 +740,12 @@ class ListItem extends Component {
                     toaster.error("You can't leave attribute name empty");
                     return;
                 }
+
+                if(this.state.template.attrs[k].value_type == ""){
+                    toaster.error("You can't leave attribute value type empty");
+                    return;
+                }
+
                 if(this.state.template.attrs[k].type == "static"){
                     ret = util.isTypeValid(this.state.template.attrs[k].static_value, this.state.template.attrs[k].value_type, this.state.template.attrs[k].type)
                     if(!ret.result){
@@ -752,7 +759,7 @@ class ListItem extends Component {
             for(let j in this.state.template.attrs){
                 if(k!=j){
                     if(this.state.template.attrs[k].label == this.state.template.attrs[j].label){
-                        toaster.error("Name is already exist");
+                        toaster.error("Name already exists");
                         return;
                     }
                 }
@@ -1084,9 +1091,6 @@ class TemplateList extends Component {
     }
 
     detailedTemplate(id) {
-        if (this.state.detail && this.state.edit) {
-        }
-
         let temp = this.state;
         temp.detail = id;
         this.setState(temp);
@@ -1212,7 +1216,7 @@ class TemplateOperations extends GenericOperations {
     whenUpdateFilter(config)
     {
         // set default parameters
-        this.setDefaultPaginationParams();
+        this.setDefaultPageNumber();
         this.filterParams = config;
         this._fetch();
     }
@@ -1293,10 +1297,10 @@ class Templates extends Component {
 function OperationsHeader(props) {
     return (
         <div className="col s5 pull-right pt10">
-            {/* <div className="searchBtn" title="Show search bar" onClick={props.toggleSearchBar}>
+             <div className="searchBtn" title="Show search bar" onClick={props.toggleSearchBar}>
                 <i className="fa fa-search" />
-            </div> */}
-            <div onClick={props.addTemplate} className="new-btn-flat red waves-effect waves-light" title="Create a new template">
+            </div>
+            <div onClick={props.addTemplate} className="new-btn-flat red" title="Create a new template">
                 New Template<i className="fa fa-plus" />
             </div>
         </div>
